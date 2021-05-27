@@ -3,7 +3,7 @@ import java.util.*;
 
 public class Template {
  
-	void primeFactorsUsingSieve(int N)
+	static void primeFactorsUsingSieve(int N)
 	{
 		int[] primeFactors = new int[N+1];
 		primeFactors[1] = 1;

@@ -1,2 +1,3 @@
 ~ What can the fib numbers can count?
 1. Counts the number of ways to split n into positive odd integers.
+  Proof: https://math.stackexchange.com/questions/3925433/number-of-ways-to-represent-any-n-as-sum-of-odd-numbers

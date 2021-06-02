@@ -1,0 +1,2 @@
+~ What can the fib numbers can count?
+1. Counts the number of ways to split n into positive odd integers.

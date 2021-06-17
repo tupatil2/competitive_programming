@@ -1,8 +1,10 @@
+// checks how many times t occurs in s
+// checks the first/any occurence of t in s
+
 public int kmp(String s, String t){
-    // check how many times t occurs in s
     int[] prefix = prefixFunction(t+"#"+s);
     // int firstOccur = -1;
-    // int count = 0;
+    int count = 0;
     for(int i = 0; i < prefix.length; i++){
         if(prefix[i] == t.length()){
             // for first occur

@@ -1,13 +1,12 @@
-
 // check levels of each node
 public static void level(int curr, int[] level, List<List<Integer>> list, int parent, int currLevel) {
-		level[curr] = currLevel;
-		List<Integer> neighbours = list.get(curr);
-		for(int it : neighbours) {
-			if(it != parent) {
-				level(it,level,list,curr,currLevel+1);
-			}
+	level[curr] = currLevel;
+	List<Integer> neighbours = list.get(curr);
+	for(int it : neighbours) {
+		if(it != parent) {
+			level(it,level,list,curr,currLevel+1);
 		}
+	}
 }
 	
 

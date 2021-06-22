@@ -66,3 +66,39 @@ static int lca(int u, int v, List<List<Integer>> list, int[] level, int log, int
     }
     return memo[u][0];
 }
+
+//kth ancestor of the node
+class TreeAncestor {
+    
+    private int P;
+    private int[][] dp;
+
+    public TreeAncestor(int n, int[] parent) {
+        P = (int) (Math.log(n)/Math.log(2)) + 1;
+        dp = new int[P][n];
+
+        for(int i = 0; i < P; ++i) {
+            Arrays.fill(dp[i], -1);
+        }
+
+        dp[0] = parent;
+
+        for(int p = 1; p < P; ++p) {
+            for(int i = 0; i < n; ++i) {
+                if(dp[p - 1][i] != - 1) {
+                    dp[p][i] = dp[p - 1][dp[p - 1][i]];
+                }
+            }
+        }
+    }
+
+    public int getKthAncestor(int node, int k) {
+        for(int p = P - 1; p >= 0; --p) {
+            if(dp[p][node] != -1 && (1 << p) <= k) {
+                node = dp[p][node];
+                k -= (1 << p);
+            }
+        }
+        return k > 0 ? -1 : node;
+    }
+}

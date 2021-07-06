@@ -22,6 +22,24 @@ private static void subTreeSize(int curr, int[] size, List<List<Integer>> list, 
   size[curr] += 1;
 }
 
+// calculate the centroid(s) in tree. And we can have atleast 1 and atmost 2 centroid in tree.
+static List<Integer> cent = new ArrayList<>();
+private static void centroid(int curr, int[] size, List<List<Integer>> list, int parent) {
+  List<Integer> neighbours = list.get(curr);
+  boolean is = true;
+  int n = size.length;
+  for(int e : neighbours) {
+    if(e != parent) {
+      centroid(e,size,list,curr);
+      size[curr] += size[e];
+      if(size[e] > n/2) is = false;
+    }
+  }
+  size[curr] += 1;
+  if(n-size[curr] > n/2) is = false;
+  if(is) cent.add(curr);
+}
+
 // lca using binary lifting
 public static void main(String[] args){
 	int n = sc.nextInt();

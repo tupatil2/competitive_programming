@@ -36,7 +36,7 @@ private static void centroid(int curr, int[] size, List<List<Integer>> list, int
     }
   }
   size[curr] += 1;
-  if(n-size[curr] > n/2) is = false;
+  if(size[curr] < n/2) is = false;
   if(is) cent.add(curr);
 }
 

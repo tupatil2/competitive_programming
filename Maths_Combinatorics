@@ -1,0 +1,2 @@
+- a derangement is a permutation of the elements of a set, such that no element appears in its original position.
+  formula for that is D(n)=(D(n−1)+D(n−2))(n−1).

@@ -2,9 +2,7 @@
 
 // Helps in detecting negative cycle.
 // Works with negative edges.
-
 // Logic: Just relax every edge N-1 times. Relax means dist calculation.
-
 // Time: O(N*M), Space: O(N)
 
 public int isNegativeWeightCycle(int n, int[][] arr)
@@ -46,9 +44,7 @@ public int isNegativeWeightCycle(int n, int[][] arr)
 //* Djisktra’s Algorithm *//
 
 // Doesn't work for negative weights
-
 // Logic: Node(Vertex, Distance), BFS, PQ
-
 // Time: O((N+E)logN), Space: O(N)
 
 static class Node{
@@ -160,4 +156,94 @@ public void dfs(int curr, int V, ArrayList<ArrayList<Integer>> adj, Stack<Intege
 		}
 	}
 	stack.add(curr);
+}
+
+
+//* MST using Kruskal’s Algo  *//
+
+// Logic: DSU
+// Time: O(Mlog(M)), Space: O(N)
+
+static void kruskalsUtil(){
+	List<Node> list = new ArrayList<>();
+	list.add(new Node(0,1,10));
+	list.add(new Node(0,2,6));
+	list.add(new Node(0,3,5));
+	list.add(new Node(1,2,15));
+	list.add(new Node(2,3,4));
+	
+	int cost = kruskals(list);
+	out.println(cost);
+}
+
+static int kruskals(List<Node> list){
+	int n = list.size();
+	
+	// sort the nodes in inc order w.r.t weight
+	Collections.sort(list,(x,y) -> x.wt-y.wt);
+	
+	// create DSU
+	DSU dsu = new DSU(n);
+	
+	int cost = 0;
+	for(Node it : list){
+		int u = it.u;
+		int v = it.v;
+		int wt = it.wt;
+		// if par is not equal, merge them.
+		if(dsu.find(u) != dsu.find(v)){
+			cost += wt;
+			// prints edges of mst
+			System.out.println(u + " " + v + " " + wt);
+			dsu.merge(u,v);
+		}
+	}
+	
+	return cost;
+}
+
+static class Node{
+	int u;
+	int v;
+	int wt;
+	public Node(int u, int v, int wt){
+		this.u = u;
+		this.v = v;
+		this.wt = wt;
+	}
+}
+
+static class DSU
+{
+	public int[] dsu;
+	public int[] size;
+
+	public DSU(int N)
+	{
+		dsu = new int[N+1];
+		size = new int[N+1];
+		for(int i=0; i <= N; i++)
+		{
+			dsu[i] = i;
+			size[i] = 1;
+		}
+	}
+	//with path compression, no find by rank
+	public int find(int x)
+	{
+		return dsu[x] == x ? x : (dsu[x] = find(dsu[x]));
+	}
+	public void merge(int x, int y)
+	{
+		int fx = find(x);
+		int fy = find(y);
+		dsu[fx] = fy;
+	}
+	public void merge(int x, int y, boolean sized)
+	{
+		int fx = find(x);
+		int fy = find(y);
+		size[fy] += size[fx];
+		dsu[fx] = fy;
+	}
 }

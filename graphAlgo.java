@@ -247,3 +247,30 @@ static class DSU
 		dsu[fx] = fy;
 	}
 }
+
+//* Floyd Warshall Algorithm  *//
+
+// Q. finds the shortest path b/w all the pairs. -1 denotes that there is no edge b/w i and j in graph.
+
+// Logic: just find --> dist(i,k) + dist(k,j) < dist(i,j)
+// Time: O(V^3), Space: O(1)
+
+public void shortest_distance(int[][] dist)
+{
+	int V = dist.length;
+	for(int k = 0; k < V; k++){
+		for(int i = 0; i < V; i++){
+			for(int j = 0; j < V; j++){
+				if(dist[i][k] == -1 || dist[k][j] == -1){ // no edges
+					continue;
+				}
+				else if(dist[i][j] == -1){ // no direct edge 
+					dist[i][j] = dist[i][k] + dist[k][j];
+				}
+				else if(dist[i][k] + dist[k][j] < dist[i][j]){
+					dist[i][j] = dist[i][k] + dist[k][j];
+				}
+			}
+		}
+	}
+}

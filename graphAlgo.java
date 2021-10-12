@@ -274,3 +274,57 @@ public void shortest_distance(int[][] dist)
 		}
 	}
 }
+
+//* Finding Bridges in a graph. *//
+
+// Logic: Beautiful concept of forward edge and back edge
+// Time: O(N+E), Space: O(N)
+
+public List<List<Integer>> criticalConnections(int n, List<List<Integer>> list) {
+	List<List<Integer>> res = new ArrayList<>();
+	
+	int[] tim = new int[n];
+	int[] low = new int[n];
+	
+	List<List<Integer>> adj = new ArrayList<>();
+	for(int i= 0; i < n; i++){
+		adj.add(new ArrayList<>());
+	}
+	
+	for(List<Integer> l : list){
+		int x = l.get(0);
+		int y = l.get(1);
+		adj.get(x).add(y);
+		adj.get(y).add(x);
+	}
+	
+	boolean[] vis = new boolean[n];
+	dfs(adj,res,tim,low,n,0,-1,vis,0);
+	return res;
+}
+
+void dfs(List<List<Integer>> list, List<List<Integer>> res, int[] time, int[] low, int n, int curr, int par, boolean[] vis, int timer){
+	vis[curr] = true;
+	time[curr] = low[curr] = timer++;
+	
+	List<Integer> neighbours = list.get(curr);
+	
+	for(int e : neighbours){
+		if(e == par) continue;
+		
+		if(vis[e]){ // we are visting the ancestor - back edge
+			low[curr] = Math.min(low[curr],time[e]);
+		}
+		else { // forward edge
+			dfs(list,res,time,low,n,e,curr,vis,timer);
+			low[curr] = Math.min(low[curr],low[e]);
+			if(low[e] > time[curr]){ // means the neighbour node doesn't have any connection with curr's ancestor
+				List<Integer> l = new ArrayList<>();
+				l.add(curr);
+				l.add(e);
+				res.add(new ArrayList<>(l));
+			}
+		}
+	}
+}
+

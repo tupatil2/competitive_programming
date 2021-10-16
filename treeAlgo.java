@@ -40,49 +40,95 @@ private static void centroid(int curr, int[] size, List<List<Integer>> list, int
   if(is) cent.add(curr);
 }
 
-// lca using binary lifting
-public static void main(String[] args){
-	int n = sc.nextInt();
-	int log = (int)Math.ceil(Math.log(n) / Math.log(2));
-	int[][] memo = new int[n + 1][log + 1];
-	dfs(0,0,list,log,level,memo); // for 0-indexed
-	// call lca from here. Also check if vertex is 0 index or 1 indexed and change it in dfs function accordingly.
+// lca using binary lifting - helps to find lca of multiple nodes in nlogn
+static int[][] lca;
+static int[] level;
+
+static void binaryLiftingForLCA(List<List<Integer>> list, int n, PrintWriter out, FastScanner sc){
+	// preprocessing
+	int maxN = log2(n);
+	lca = new int[n][maxN+1];
+	preprocess(list,maxN,n);
+	
+	// calculate the level
+	level = new int[n];
+	level(0, level, list, -1, 0);
+
+	// handle the query of nodes
+	int q = sc.nextInt();
+	while(q-- > 0){
+	    // two nodes whose lca we have to calculate
+	    int a = sc.nextInt()-1;
+	    int b = sc.nextInt()-1;
+	    int lcaNode = lca(a,b,maxN);
+	    // int dist = level[a]-level[lcaNode] + level[b]-level[lcaNode];    
+	}    
 }
 
-static void dfs(int u, int p, List<List<Integer>> list, int log, int[] level, int[][] memo)
-{
-    memo[u][0] = p;
-    for (int i = 1; i <= log; i++)
-	memo[u][i] = memo[memo[u][i - 1]][i - 1];
-    List<Integer> neighbours = list.get(u);
-    for (int v : neighbours) {
-	if (v != p) {
-	    level[v] = level[u] + 1;
-	    dfs(v, u, list, log, level, memo);
+static int lca(int a, int b, int maxN){
+	if(level[a] > level[b]) {
+	    int temp = a;
+	    a = b;
+	    b = temp;
 	}
-    }
+
+	int d = level[b] - level[a];
+
+	while(d > 0){
+	    int i = log2(d);
+	    b = lca[b][i];
+	    d -= (1<<i);
+	}
+
+	if(a == b){
+	    return a;
+	}
+
+	for(int i = maxN; i >= 0; i--){
+	    if(lca[a][i] != -1 && lca[a][i] != lca[b][i]){
+		a = lca[a][i];
+		b = lca[b][i];
+	    }
+	}
+
+	// return parent of a
+	return lca[a][0];
 }
 
-static int lca(int u, int v, List<List<Integer>> list, int[] level, int log, int[][] memo)
-{
-    if (level[u] < level[v]) {
-	int temp = u;
-	u = v;
-	v = temp;
-    }
-    for (int i = log; i >= 0; i--) {
-	if ((level[u] - (int)Math.pow(2, i)) >= level[v])
-	    u = memo[u][i];
-    }
-    if (u == v)
-	return u;
-    for (int i = log; i >= 0; i--) {
-	if (memo[u][i] != memo[v][i]) {
-	    u = memo[u][i];
-	    v = memo[v][i];
+static void preprocess(List<List<Integer>> list, int maxN, int n){
+	// find the 1st parent of every node
+	dfs(list,0,-1);
+
+	// find all the "power of 2s" parent of every node
+	for(int j = 1; j <= maxN; j++){
+	    for(int i = 0; i < n; i++){
+		if(lca[i][j-1] != -1){
+		    int par = lca[i][j-1];
+		    lca[i][j] = lca[par][j-1];
+		}
+	    }
 	}
-    }
-    return memo[u][0];
+}
+
+static void dfs(List<List<Integer>> list, int curr, int par){
+	lca[curr][0] = par;
+	List<Integer> neighbours = list.get(curr);
+	for(int e : neighbours){
+	    if(e == par){
+		continue;
+	    }
+	    dfs(list,e,curr);
+	}
+}
+
+public static void level(int curr, int[] level, List<List<Integer>> list, int parent, int currLevel) {
+	level[curr] = currLevel;
+	List<Integer> neighbours = list.get(curr);
+	for(int it : neighbours) {
+	    if(it != parent) {
+		level(it,level,list,curr,currLevel+1);
+	    }
+	}
 }
 
 //kth ancestor of the node

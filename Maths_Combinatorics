@@ -6,3 +6,13 @@
   
   Awesome Problem On Combinatorics + DP
   - https://codeforces.com/problemset/problem/1105/C
+  
+  - Count the number of divsiors of some number x
+       Every number can be expressed in powers of primes 
+       
+       x = a^x1 * b^x2 * c^x3 * ... so on
+       where x1, x2, x3.. are some integers and a,b,c... are prime numbers.
+       
+       Formula for finding the count of divisors = (x1+1)*(x2+1)*(x3+1)*...
+      
+  - Sum of divisors of some number x can be done using GP and above approach.

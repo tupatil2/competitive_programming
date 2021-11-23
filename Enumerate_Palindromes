@@ -1,0 +1,19 @@
+// generating all the palindromes in sorted order using enumerate palindromes
+
+long num = 0;
+for(long i = 1; i <= 100; i *= 10){
+    
+    // odds from i to i*10 which are palindrome
+    for(long j = i; j < i*10; j++){
+        num = findPalin(j,true);
+        System.out.print(num + " " );
+    }
+    
+    // evens from i to i*10 which are palindrome
+    for(long j = i; j < i*10; j++){
+        num = findPalin(j,false);
+        System.out.print(num + " " );
+    }
+    System.out.println();
+    
+}

@@ -1,0 +1,1283 @@
+-> Android Development Concepts
+
+1. Gradle -> It is a built tool, adapted by android and gradle runs test on our project and provides APK file which is supported by android.
+
+2. Android -> Simplified view, Project -> Finder structure
+
+3. MainActivity.kt -> how things will work.
+   ActivityMain.xml -> what to put inside our app. (multiple widgets, containers, etc)
+   
+4. strings.xml -> whatever string we have, we have to write it in this. It simplifies stuff like language coversion.
+   styles.xml -> styling of whole app. 
+   color.xml -> helps in mentioning color.
+   drawable -> is for puting images.
+   
+5. Layouts -> they are containers and we put button, images etc in our containers. And every containers has its own property.
+
+6. Constaint Layout (Default) -> ConstraintLayout is a layout on Android that gives you adaptable and flexible ways to create views for your apps. (like spring)
+
+7. 	DP (Density Independent Pixel) -> We denote distance in DP. It doesn't matter what device it is. It will always be at the same postion.
+	SP (Scale Independent Pixel) -> Used in text sizing. And whenever we will change the text size in phone, SP will also change, but DP will not.
+
+8. 	Padding -> from inside how much we have to create space. (under se kitna phelana hai)
+	Margin -> between two containers how much we want space. 
+	
+9. If you want to create new screen then you have to create new activity.
+
+10. Each containers (in XML) has its own id which we can access in activity.
+
+11. Life Cycle Methods
+	// default method
+	onCreate -> when activity is created for first time.
+	// we have to override the following methods
+	onPause -> when activity is paused.
+	onResume -> when it comes from resume state, this is called.
+	onStart -> after create this is called.
+	onDestroy -> when activity is destroyed.
+
+
+12. How to handle clicks?
+	Method 1. id.setOnClickListener{} in MainActivity.
+	Method 2. onClick in xml file on the desired button. and it creates function in MainActivity [THIS ONE IS GOOD]
+	
+13. Toast Message -> it will show up on screen for few seconds and disappears.
+
+14. How to extract string from view in MainActivity?
+	val name = id.editableText.toString()
+	
+15. How to jump from one screen/Activity to another? [INTENT]
+	Let's say we have to move from s1 screen to s2 screen.
+	1. Create Intent in s1
+		
+		// code starts
+		val intent = Intent(this, s2::class.java)
+		startActivty(intent)
+		// code ends
+		
+		here startActivty() inherits from AppCompatActivity().
+		
+	and hurray, when we will click on button we will move to another activity.
+	
+	With the help of Intent, we can redirect to yt, or some other apps.
+	
+16. How to pass data of one screen/Activity to another? [AGAIN USING INTENT]
+	
+	Let's say we have to move from s1 screen to s2 screen.
+	
+	1. Send the data from s1 to s2 [USING putExtra("key",value)]
+		Write this in s1 screen.
+		
+		// code starts
+		val name = id.editableText.toString()
+		
+		val intent = Intent(this, s2::class.java)
+		intent.putExtra("name", name) // key-value pairs
+		startActivty(intent)
+		// code ends
+		
+		Intent is like a bundle (key-value pairs) in which we can pass the key-value pairs from s1 to s2.
+	
+	2. Get the data from s1 in s2 [USING getStringExtra("key")]
+		Write this in s2 screen.
+		
+		// code starts
+		val name = intent.getStringExtra("name") // key should be same
+		// code ends
+	
+	3. companion object -> Using companion object we can have same key in both the screens. All the variables becomes static using this.
+	
+	4. const -> we cannot change it.
+	
+
+17. How to initialize view in MainActivity?
+	// lets say we have to initialize text of XML (ActivityMain) in MainActivity (kt file)
+	// code 
+	id.text = "$name"
+
+18. How to add images in our app?
+	
+	1. We have to paste our image in drawable folder of Android Studio. [Note: use small size image]
+	2. Create a XML container of ImageView
+	3. Just play with width and height.
+	4. But just add this code -> android:src = "@drawable/img"
+	5. android:scaletype: "centerCrop" -> if image is small but screen is big then we use this.
+
+19. Z-index: Containers at top have z-inder more than containers at bottom. So if some container is hidden just write it on top in XML code.
+
+20. Error Checking: We can check out error in Logcat.
+
+21. Containers Width & Height Attributes
+	wrap content -> the view wants to be just large enough to fit its own internal content, taking its own padding into account.
+    match parent -> to match width and height same as its parent attribute tag.
+	
+	
+MEME APP [API, IMAGE PROCESSING]
+
+1. Guideline (vertical or horizontal) -> acts as reference line
+
+2. How to make API calls & How to process Image from url? [VOLLEY & GLIDE LIBRARY]
+	Read This if you don't get it -> https://developer.android.com/training/volley/simple
+	
+	-> Use volley library for network call. It also helps in caching.
+	-> To use this we have to add dependency in app level gradle.
+	-> Add the internet permission in manifest file.
+	-> Manifest File - we declare the icon, theme, opening activity, etc in this file.
+	-> Now create a function where we will make API call
+	-> Before that let's discuss Image PROCESSING TOO.
+	-> for that we use GLIDE library. Just import it from repo.
+	-> and now we are good to go with our api call and image processing.
+	
+	-> First of all create a singleton file (MySingleton.kt). Because it is good practise to create only one instance of volley.
+	-> Singleton Pattern -> Ek esi class jiska ek hi instance ho sakta hai.
+	-> Just copy paste this code and no need to worry. upar wala hi padh sirf.
+	
+	// code -> Create new kt file for singleton code.
+	class MySingleton constructor(context: Context) {
+		companion object {
+			@Volatile
+			private var INSTANCE: MySingleton? = null
+			fun getInstance(context: Context) =
+				INSTANCE ?: synchronized(this) {
+					INSTANCE ?: MySingleton(context).also {
+						INSTANCE = it
+					}
+				}
+		}
+		private val requestQueue: RequestQueue by lazy {
+			// applicationContext is key, it keeps you from leaking the
+			// Activity or BroadcastReceiver if someone passes one in.
+			Volley.newRequestQueue(context.applicationContext)
+		}
+		fun <T> addToRequestQueue(req: Request<T>) {
+			requestQueue.add(req)
+		}
+	}
+	
+	// code starts
+	private fun load(){
+		// create a queue 
+		// val queue = Volley.newRequestQueue(this)
+		// no need to create queue as we are following MySingleton.kt
+		
+		// this is our url from which we will fetch data
+		val url = "www.xyz.com"
+
+		// url provides JSON data, so we use this
+		val jsonObjectRequest = JsonObjectRequest(
+				Request.Method.GET, url, null,
+				// if request is successful then this
+				Response.Listener { response ->
+					
+					// fetch the url of meme from JSON object
+					val url = response.getString("url")
+					
+					// Image PROCESSING using GLIDE
+					Glide.with(this).load(url).into(id)
+					
+					// here id is the id of image view in xml
+				},
+				// otherwise this
+				Response.ErrorListener { error ->
+					// TODO: Handle error
+				}
+		)
+		
+		// add the object to queue
+		// queue.add(jsonObjectRequest);
+		
+		// add in my singleton queue. No need to add in the above one.
+		MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest)
+	}
+	// code ends
+	
+	-> whenever we will call the function our meme will be displayed.
+	
+3. How to add share button? [USING INTENT]
+
+	-> Intent - It is used for inter process communication.
+	-> There are two types of intents -> implicit & explicit
+	
+	// code
+	val intent = Intent(Intent.ACTION_SEND)
+	
+	// intent.type will show the apps which allows this type of data.
+	intent.type = "text/plain"
+	intent.putExtra(Intent.EXTRA_TEXT, "hey check out this cool meme $url")
+	
+	// chooser means the app that will show when we will click on share button
+	val chooser = Intent.createChooser(intent,"Share this meme with...")
+	startActivty(chooser)
+	
+
+4. How to add loader? [progressBar]
+	-> use progress bar in xml
+	-> Just write in kt file this code
+		progressBar.visiblility = View.VISIBLE // for making it visible
+		progressBar.visiblility = View.GONE // for disappearing
+
+
+	
+NEWS APP [Scrollable View] [THEORY]
+
+1.  RECYCLER VIEW
+	Recycler view -> Optimization of list view. It will only show those views which are visible.
+	
+2. How to create RECYCLER VIEW?
+								
+								 View Holder
+								 \/		  /\
+	Layout Manager -> RECYCLER VIEW <- Adapter <- DATA <- API
+	
+	Layout Manager -> multiple layouts such as straggered, grid, vertical, horizontal, etc.
+	Adapter -> It takes XML and data & helps in feeding/binding it to Recycler View.
+	View Holder -> XML part of Adapter is handled/inflated by View Holder.
+	Recycler View -> It is just normal view like text view, image view, etc.
+	
+3. How to create Layout Manager?
+	
+	1. First create the recycler view in XML and give some id.
+	// code for layout manager 
+	recyclerView.layoutManager = LinearLayoutManager(this)
+	
+4. Create Apdater & ViewHolder
+
+	1. create new kotlin class for adapter & viewholder
+	2. create the XML view of the small item which we have to repeat in Recycler View
+	3. For creating adapter we need viewholder. So we will create one viewholder class 
+	4. Now Apdater has 3 main functions:
+		OnCreateViewHolder -> We inflate (XML to View) the view, and also handle the click using interface.
+		GetItemCount -> Provides the size of items.
+		OnBindViewHolder -> We take the holder and bind it with current item.
+	5. Now just go to MainActivity and create the instance of the Adapter and pass the data in the adpater.	
+	6. Attach the recyclerView with adapter. 
+	
+	Note: We don't actually handle the clicks on Adaper, we just create one interface and then we handle it in MainActivity.kt
+	
+5. DATA CLASS - Data class is a simple class which is used to hold data/state and contains standard functionality. A data keyword is used to declare a class as a data class.
+
+6. notifyDataSetChange() -> All the three functions of Adpater will be called again.
+
+7. How to implement Chrome Custom Tabs?
+	
+	https://developer.chrome.com/docs/android/custom-tabs/
+	
+	1. Import the dependency.
+	// add this code 
+	String url = ¨https://paul.kinlan.me/¨;
+	val builder = CustomTabsIntent.Builder();
+	val customTabsIntent = builder.build();
+	customTabsIntent.launchUrl(this, Uri.parse(url));
+	
+	
+
+NOTE APP [IN DEPTH]
+	
+ANDROID ARCHITECTURE COMPONENT
+
+-> ANDROID ARCHITECTURE COMPONENT - It is set of rules recommended by android (in 2017 IO) to create any app, because of this we can create scalable, robust, industry level apps.
+
+-> All the data is stored in SQLite db's form in Room DB (which is layer on SQLite DB)
+
+-> What is Android Architecture Component?
+	Android architecture components are a collection of libraries that help us in the following: Building the robust Android application. Building the testable Android application. Building the maintainable Android Apps.
+	
+-> Flow Of App
+
+	UI Controller (Activity) <- displays the data and forwards the UI events
+		\/
+	ViewModel (Live Data) <- Holds all the data needed for UI (Concept of MVVM Architecture)
+		\/
+	Repository   <- Repository is a class which purpose is to provide a clean API for accessing data.
+		\/
+	 --------- ROOM Database [Helps in accessing DAO and follows singleton pattern]
+		\/
+	   DAO (Data Access Object) [Query is done here on Entity]
+		|
+	  SQLite [ENTITY/TABLE]
+	  
+-> Start with Bottom Layer
+
+
+1. Create An Entity/Table.
+
+Create new Note class
+
+-> Entity [TABLE]
+	Annotated class that describes a database table when working with Room. In this we define the schema/structure of our table
+
+// code
+@Entity(tableName = "notes_table")
+class Note(@ColumnInfo(name = "text") val text: String){
+	// helps in auto generating primary key.
+	@PrimaryKey(autoGenerate = true) var id = 0;
+}
+
+2. Create DAO
+
+Create new NoteDao class
+
+-> DAO [Data Access Object]
+	To access the Entity, we use DAO. And through DAO we give the data to Repository.
+	
+// code
+@Dao
+interface NoteDao {
+
+    @Insert 
+    suspend fun insert(note: Note)
+
+    @Delete
+    suspend fun delete(note: Note)
+
+    @Query("Select * from notes_table order by id ASC")
+    fun getAllNotes(): LiveData<List<Note>>
+}
+
+IMP Note: 
+* Corountines (suspend)
+The insert/delete functions run on main thread by default. So we don't want them to run on main thread because Insert and Delete are IO operations and they are very heavy and makes the app lagy. So to ensure that we run the process on background thread we use coroutines (suspend keyword).
+Suspend function can be called by background thread function or other suspend function.
+
+* LiveData
+Wrapper on Data. We can observe live data from anywhere. We just need lifecycle owners(Activity/Fragment) who can observe this data. 
+Observe -> change in data. Room supports LiveData.
+
+3. Create Room Database
+
+It just helps in accessing NoteDao.
+
+-> Room DB 
+	Room is a database layer on top of an SQLite database. Room uses the DAO to issue queries to its database.
+
+// create abstract class of NoteDatabase
+
+@Database(entities = arrayOf(Note::class), version = 1, exportSchema = false)
+abstract class NoteDatabase : RoomDatabase(){
+	abstract fun getNoteDao(): NoteDao
+	
+	// IMP: make it singleton to make only one instance [JUST COPY PASTE FROM THE LINK]
+	@Volatile
+	private var INSTANCE: NoteDatabase? = null
+
+	fun getDatabase(context: Context): NoteDatabase {
+		// if the INSTANCE is not null, then return it,
+		// if it is, then create the database
+		return INSTANCE ?: synchronized(this) {
+			val instance = Room.databaseBuilder(
+					context.applicationContext,
+					NoteDatabase::class.java, 
+					"note_database"
+				).build()
+			INSTANCE = instance
+			// return instance
+			instance
+		}
+	}
+	
+}
+
+// synchronized -> used for making it thread safe.
+
+4. Create Repository
+
+We want our viewmodel to interact with only one data source. So that's why we create repository, so that all the data can be accessed in Repository only.
+Also helps in caching. Meaning the data which is coming from Internet can be stored in RoomDB in the form of cache with the help of repository.
+Repository is not an component, it is just simple class which helps in providing clean APIs.
+
+// create NoteRepository class
+
+// Declares the DAO as a private property in the constructor. Pass in the DAO
+// instead of the whole database, because you only need access to the DAO
+
+class NoteRepository(private val noteDao: NoteDao){
+	val allNotes: LiveData<List<Note>> = noteDao.getAllNotes()
+	
+	suspend fun insert(note: Note){
+		noteDao.insert(note)
+	}
+	
+	suspend fun delete(note: Note){
+		noteDao.delete(note)
+	}	
+}
+
+5. Create ViewModel
+
+* The ViewModel's role is to provide data to the UI and survive configuration changes. A ViewModel acts as a communication center between the Repository and the UI.
+* ViewModel is lifecycle aware meaning ViewModel knows when to give data to Activity and when not to, when activity is live or crash.
+* Also provides separation of concerns.
+* LiveData is observed by activity.
+
+// create class of NoteViewModel
+
+class NoteViewModel(application: Application) : AndroidViewModel(application)(
+	
+	private val repository: NoteRepository
+	val allNotes: LiveData<List<Note>> 
+	
+	init{
+		// get noteDao and with the help of repository get the list of notes
+		// we are getting dao for we need it to access repository
+		// we can access dao using database
+		
+		val dao = NoteDatabase.getDatabase(application).getNoteDao()
+		repository = NoteRepository(dao)
+		allNotes = repository.allNotes()
+	}
+	
+	// we cannot call delete fun of repository directly as it is a suspend function.
+	// so we create a coroutine scope in which new thread is created and then we call repository's delete function
+	fun deleteNote(note: Note) = viewModelScope.launch(Dispatchers.IO){
+		repository.delete(note)
+	}
+	
+	// same with insert note
+	fun insertNote(note: Note) = viewModelScope.launch(Dispatchers.IO){
+		repository.insert(note)
+	}
+}
+
+6. In MainActivity we will get ViewModel
+
+//all the code I am writing is in MainActivity.
+
+lateinit var viewModel: NoteViewModel
+
+override fun onCreate(){
+
+	recyclerView.layoutManager = LinearLayoutManager(this)
+	val adapter = NotesRVApdater(this,this)
+	recyclerView.adapter = adapter 
+	
+	
+	// get instance of viewModel
+	viewModel = ViewModelProvider(this,ViewModelProvider.AndroidViewModelFactory.getInstance(application).get(NoteViewModel::class.java)
+	
+	// now we want out data
+	// allNotes is LiveData so we can observe by LifeCycleOwner(Activity/Fragment)
+	
+	viewModel.allNotes.observe(this,Observer{ list ->
+		list?.left{
+			adapter.updateList(it)
+		}
+		// if list is not empty then only we will update the list
+	})
+}
+
+override fun onItemClicked(note: Note){
+	viewModel.deleteNote(note)
+	// we can create TOAST for deletion
+}
+
+// in activity_main use onclick on submit button and this fun will be created
+fun submitData(view: View){
+	val noteText = input.text.toString()
+	if(noteText.isNotEmpty()){
+		viewModel.insertNote(Note(noteText))
+		// we can create TOAST for insertion
+	}
+}
+
+// All the DB work is done. Now we just have to create recycler view and do UI stuff thats it.
+
+7. Create Adapter For RecyclerView
+
+Create XML for repeating items in item_notes.xml.
+And go to create edit text and button in activity_main.xml.
+Also create recyclerView in activity_main.xml
+NOTE: TOOLS IN XML -> in tools sirf dikhata hai per hota nhi hai actual main, helps in visualizing.
+
+class NotesApdater(private val context: Context, private val listener: INotesRVAdapter): RecyclerView.Adapter<NotesRVApdater.NoteViewHolder>{
+
+	val allNotes = ArrayList<Note>()
+	
+	// we will create inner class of view holder
+	inner class NoteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
+		val textView = itemView.findViewById<TextView>(R.id.text)
+		val deleteButton = itemView.findViewById<ImageView>(R.id.deleteButton)
+	}
+	
+	// implement the methods of Adapter
+	override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder{
+		val viewHolder = NoteViewHolder(LayoutInflater.from(context).inflate(R.layout.item_note,parent,false))
+		// handling delete button using below and interface
+		viewHolder.deleteButton.setOnClickListener{
+			listener.onItemClicked(allNotes[viewHolder.adapterPostion])
+		}
+		return viewHolder
+	}
+	
+	override fun getItemCount(): Int{
+		return allNotes.size
+	}
+	
+	override fun onBindViewHolder(holder: NoteViewHolder, positon: Int){
+		// we will get the text and position from allNotes and we will bind it to viewHolder
+		val currentNote = allNotes[positon]
+		holder.textView.text = currentNote.text
+	}
+
+	fun updateList(newList: List<Note>){
+		allNotes.clear()
+		allNotes.addAll(newList)
+		
+		notifyDataSetChange()
+	}
+}
+
+// for handling delete button click
+interface INotesRVAdapter{
+	fun onItemClicked(note: Note)
+}
+
+
+Dummy Explanation
+
+How to explain the Notes App project?
+
+
+I have create the app using Android Architecture Component. It is set of rules recommended by android (in 2017 IO) to create any app, because of this we can create scalable, robust, industry level apps. 
+
+Also I have used MVVM Architecture in my project. Model-View-ViewModel (MVVM) is a software design pattern that is structured to separate program logic and user interface controls.
+
+So when I will write some data and kill the app, and if I again reopen it then we can see the same data as previous. Because here I am using Room Database, which is layer on SQLite database. 
+
+When I started working on this app, I started directly and was stuck between database and UI interaction like how I will connect them and how it will delete or insert the data. So I decided to create a Flow for my app.
+
+-> Flow Of App
+
+	UI Controller (Activity) <- displays the data and forwards the UI events
+		\/
+	ViewModel (Live Data) <- Holds all the data needed for UI (Concept of MVVM Architecture)
+		\/
+	Repository   <- Repository is a class which purpose is to provide a clean API for accessing data.
+		\/
+	 --------- ROOM Database [Helps in accessing DAO and follows singleton pattern]
+		\/
+	   DAO (Data Access Object) [Query is done here on Entity]
+		|
+	  SQLite [ENTITY/TABLE]
+	  
+So, I created this flow. I started with the bottom layer. 
+
+Step1. I created the Entity for my app. So I thought that what my app is going to store. And the answer was simple. Just Strings.
+So i created entity/table of strings. Creating table was very simple as we just have to create the class and anotate the class with @Entity.
+
+Step2. Then I create the DAO which is Data Access Object. What it does is, it iteracts with Entity and we can query on Entity using DAO.
+
+Step3. To provide access to DAO, I create rhe Room Database, which followed singleton pattern, meaning only one instance of DAO was created. I also used synchronized lock to make it thread safe.
+
+Step4. Then I created the Repository, now repository is not component of Android Architecture, but it is good practise to use Repository. With the help of Repository we can provide clean APIs to our ViewModel. Repository acts as a single source of truth, which takes the data from Databse/APIs and provides to ViewModel.
+
+Step5. Then I went on creating the ViewModel.
+* The ViewModel's role is to provide data to the UI and survive configuration changes. A ViewModel acts as a communication center between the Repository and the UI.
+* ViewModel is lifecycle aware meaning ViewModel knows when to give data to Activity and when not to pr when activity is live or crash.
+
+Step6. I created the UI of the app. which was simple to do. But I faced some problem on showing list of items like I was not sure how to display. Then with the help of Recycler View I created the list view of my app. Also recycler handles the click of delete button too. For that i created the interface and in onCreateViewHolder method of apdater I did onClickListener. And with the help of viewModel it was easy to delete/insert the note.
+
+So the MainActivity of my app was only handling the UI, and rest of the backend was handled by other components. Because we are providing seperations of concern in this app, it is very easily scalable, robust, and testable app.
+
+Note: 
+How to use recyclerView? [Very Short Explanation]
+0. set layoutManager in MainActivity
+1. Create the repeating layout in separate XML
+2. Create Viewholder
+3. Create Adapter.
+4. Connect the adapter with Viewholder.
+5. Implement the 3 methods of Adpater.
+	OnCreateViewHolder -> helps in inflating the view, and also click handling using interface.
+	getItemCount -> gives the count of item.
+	OnBindViewHolder -> helps in binding the data of list to XML.
+
+
+Problems which I faced:
+
+1. App was laggy at first. 
+So I coroutines's function which is suspend. 
+* Corountines (suspend)
+The insert/delete functions run on main thread by default. So we don't want them to run on main thread because Insert and Delete are IO operations and they are very heavy and makes the app lagy. So to ensure that we run the process on background thread we use coroutines (suspend keyword).
+Suspend function can be called by background thread function or other suspend function.
+
+2. Didn't know how my app is going to observe the change. 
+So, I used LiveData for that.
+* LiveData
+Wrapper on Data. We can observe live data from anywhere. We just need lifecycle owners(Activity/Fragment) who can observe this data. 
+Observe -> change in data. Room supports LiveData.
+
+3. I tried without MVVM ARCHITECTURE but failed because the code was becoming messy.
+	So when i separated the code, it was easy to understand and use.
+	
+
+
+
+Common Interview Questions
+
+1. Tell about the app (in general), what it is and what it does?
+2. Explain the functions of the app.
+3. Why makes the app Unique?
+4. What are challenges which I faced during the making?
+5. Why Android?
+6. Latest things used in the app.
+7. Improvements in the app.
+8. Motivation behind the app.
+9. Have you tested your app?
+10. User limit of the app.
+11. Why room DB?
+12. Why Firebase?
+13. Why this project?
+
+IMPORTANT THINGS WHICH INTERVIEWER WILL SEE?
+1. Features
+2. Problems faced
+3. Why this tech stack
+4. Improvements
+
+STAR METHOD EXPLANATION	
+
+Situation:
+
+I was always curious about the storage of our data. Like how our data is being stored in any database. So, I thought of creating an app in which the functionality of the app will be simple but behind the scenes it should be complex as we have to create the database. So I decided to create notes app.
+
+This is a note app. So, the main function of the app is to write the daily notes like a reminder or something. 
+
+Task:
+
+I wanted to make the app which not stores the data in database, but the app should follow 
+0. Layout of the app & keep it as simple as possible.
+1. Latest android architectures/practises 
+2. Should be maintainable, testable, & robust. 
+3. It should be industry level app which is scalable.
+4. There should not be any laggy situation in the app.
+
+Action:
+
+We can see the Enter Notes input (done using Edittext in XML). There we have to write our note and when you will press the submit button then the notes get inserted below.
+
+Also we can delete the notes that are written in the past too.
+
+Whenever we delete or insert the note there is one toast which can be seen. 
+
+So when I will enter some notes and kill the app, and when i reopen it again then we can see that the data we have entered is same, like it is not gone. Because I am using room database in the app.
+
+Room Database is a layer on SQLite database, and I am using room database because :
+1. it saves a me from writing a lot of boilerplate code to create and manage databases. 
+2. It also provides compile-time validation of SQL queries. This means that an application won't compile if there is an SQL query error. 
+So this is the reason why i choose room db.
+
+UI:
+The UI of the app is very simple but it too me lot of time to design the view for the notes.
+
+There are two types of views in android which can perform show list.
+1. ListView 2. RecyclerView
+
+I used RecyclerView for displaying the notes.
+
+Why I used RecyclerView?
+As the name suggests it recycles the view, because of which the storage of views on our screen is minimum and also it is optimzation over listview, and my task was to use latest android practises, so I used RecyclerView.
+
+Challenging Tasks:
+The most challenging task for me was to write production level code, and to use latest android practises. 
+
+So, few years ago, developers used to write lots of boilerplate code which was unnecessary and the code was really complex to usedstand also.
+
+So, to tackle this problem I have created the app using Android Architecture Component. It is set of rules recommended by android (in 2017 IO) to create any app, because of this we can create scalable, robust, industry level apps. 
+
+Also I have used MVVM Architecture in my project. Model-View-ViewModel (MVVM) is a software design pattern that is structured to separate program logic and user interface controls.
+
+And the flow of my app is this:
+
+I started with the bottom layer. 
+
+So with the help of MVVM Architecture, I was able to provide separation of concerns (SoC) to my app.
+
+To avoid lag in my app was also one challenging task.
+So, I found that the database operation are heavy operations. So, whenever we are doing any sorts of operations from/on database then there will be lag in the app as it is very heavy operation. So to tackle this I used coroutines. 
+
+So, I got to know that to tackle the lag problem, I just have to perform the db operation using coroutines. And to perform the operations we can use coroutine's suspend function. Also the reason why i used coroutine is because it is very easy to perform the time consuming operations using coroutine as we don't have to write tonn of code. 
+
+So this is how I handled lag situation in my app.
+
+
+Results:
+
+1. I was able to create user friendly design for my app.
+2. I followed android's latest architecture/practises.
+3. As Android has offically recommended to use MVVM Architecture, I was able to create Scalable, Robust, and Maintainable App.
+4. The app was also lag free.
+
+Improvements:
+1. Can add date of the data (like when the data is added)
+2. Can have multiple folders (like work, health,etc)
+3. Button for important task.
+
+Why android? Why not flutter?
+
+- Smooth working
+- Fast operating speed.
+- Flawless performance.
+- Most reliable when it comes to user experience.
+
+
+
+
+
+SOCIAL MEDIA APP
+
+How real time db works? | Firebase ka firestore
+
+- Works on real time db that is firebase.
+
+What is firebase?
+Almost every android production level app uses firebase. And there are lots of tools in firebase. I have used Cloud firestore.
+
+
+1. Connect the firebase to your android studio.
+
+2. Add dependencies like of coroutine, UI, firebase bomb, glide, etc and kotlin plugin
+
+Firebase BoM Dependency -> We don't need to update the versions of other dependencies if we are using this one. VERY USEFUL
+
+3. Firebase Authorization - how to add Sign In Functionality? [MOSTLY COPY PASTE EXCEPT COROUTINE STUFF]
+	
+	Follow this -> https://firebase.google.com/docs/auth/android/google-signin#kotlin+ktx_1	https://github.com/firebase/snippets-android/blob/8184cba2c40842a180f91dcfb4a216e721cc6ae6/auth/app/src/main/java/com/google/firebase/quickstart/auth/kotlin/GoogleSignInActivity.kt#L79-L94
+	
+	- Go to firebase website and launch firestore.
+	- Just go to Authentication and go to sign in methods and enable the status of google auth.
+	- Now go to app, and create sign in activity class (SignInActivity.kt).
+	- Go to manifest and set the launcher class to SignInActivity.kt.
+	- Now create XML of signIn using signIn.
+	- Handle the click on signIn button.
+	- To do that we need to download the JSON file from firebase and save it to Project level's App folder and rebuild the project.
+	- Now just copy paste the code.
+	
+	// code for MainActivity.kt's onCreate function 
+	
+	private lateinit var auth: FirebaseAuth
+	override fun onCreate(){
+		// Configure Google Sign In
+		val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+				.requestIdToken(getString(R.string.default_web_client_id))
+				.requestEmail()
+				.build()
+
+		googleSignInClient = GoogleSignIn.getClient(this, gso)
+		auth = Firebase.auth
+		// now setOnClickListener on signIn button of XML
+		id.setOnClickListener{
+			signIn()
+		}
+	}
+	
+	// if user is signed in then don't show the login screen.
+	// onStart is called after onCreate and it will check whether the user is signed In or not.
+	override fun onStart() {
+		super.onStart()
+		// Check if user is signed in (non-null) and update UI accordingly.
+		val currentUser = auth.currentUser
+		updateUI(currentUser)
+	}
+
+	// now create new function
+	private fun signIn() {
+		// this intent is to show all the email ids logged in from google 
+		val signInIntent = googleSignInClient.signInIntent
+		startActivityForResult(signInIntent, RC_SIGN_IN)
+	}
+	
+	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+		super.onActivityResult(requestCode, resultCode, data)
+
+		// Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+		if (requestCode == RC_SIGN_IN) {
+			val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+			try {
+				// Google Sign In was successful, authenticate with Firebase
+				val account = task.getResult(ApiException::class.java)!!
+				Log.d(TAG, "firebaseAuthWithGoogle:" + account.id)
+				firebaseAuthWithGoogle(account.idToken!!)
+			} catch (e: ApiException) {
+				// Google Sign In failed, update UI appropriately
+				Log.w(TAG, "Google sign in failed", e)
+			}
+		}
+	}
+	
+	// IMP function
+	private fun firebaseAuthWithGoogle(idToken: String) {
+		val credential = GoogleAuthProvider.getCredential(idToken, null)
+		
+		signInButton.visibility = View.GONE
+		// add progressBar in the XML.
+        progressBar.visibility = View.VISIBLE
+			
+		// use of coroutine - seperate thread, we will not get caught in call back hell
+		GlobalScope.launch(Dispatchers.IO) {
+			
+			// we want signInWithCredential to work on background thread because it is heavy operation.
+            val auth = auth.signInWithCredential(credential).await()
+            val firebaseUser = auth.user
+			
+			// but we don't wamt our updateUI to work on background thread
+			// Note: We cannot update the UI from background thread, from main thread
+			// withContext(Dispatchers.Main) helps in switching in main thread
+            withContext(Dispatchers.Main) {
+                updateUI(firebaseUser)
+            }
+        }
+	}
+	
+	private fun updateUI(firebaseUser: FirebaseUser?) {
+		if(firebaseUser != null) {
+			// now we will get the firebase user and send user to MainActivity but we have to store user in DB, so we do this.
+			// create the user object first
+			val user = User(firebaseUser.uid, firebaseUser.displayName, firebaseUser.photoUrl.toString())
+			// to add in DB we need userDao
+			val usersDao = UserDao()
+			usersDao.addUser(user)
+			
+			// if user is not null then go to MainActivity through intent.
+            val mainActivityIntent = Intent(this, MainActivity::class.java)
+            startActivity(mainActivityIntent)
+            finish()
+        } else {
+			// if we cannot login then this.
+            signInButton.visibility = View.VISIBLE
+            progressBar.visibility = View.GONE
+        }
+	}
+	
+2. Firebase 
+
+- Now create two packages: models, daos.
+	Model will contain the attributes of user, post, etc.. and it will be data class.
+	Daos will help in adding the entry in user database
+
+- Data class is a simple class which is used to hold data/state and contains standard functionality.
+
+
+// USER
+
+// create user class in models package
+data class User(val uid: String = "",
+                val displayName: String? = "",
+                val imageUrl: String = "")
+				
+				
+// create user dao in daos package
+class UserDao {
+	// to access DB 
+    private val db = FirebaseFirestore.getInstance()
+	
+	// it also intializes the collection if not present, otherwise access the collection
+    private val usersCollection = db.collection("users")
+	
+	// helps in adding user to DB 
+    fun addUser(user: User?) {
+		// if user in not nullable we will do below stuff. // code: ?
+        user?.let {
+			// DB call is heavy operation, so apply coroutine on that. but firebase is fast but then also we will do coroutine.
+            GlobalScope.launch(Dispatchers.IO) {
+				// add the user in database
+                usersCollection.document(user.uid).set(it)
+            }
+        }
+    }
+	
+	fun getUserById(uId: String): Task<DocumentSnapshot> {
+        return usersCollection.document(uId).get()
+    }
+}
+
+// POST 
+
+// Add the post to DB
+
+// create floating action button in activity_main.XML 
+
+// handle the click by setOnClickListener and send it to create post activity
+
+// create Post Model First
+
+data class Post (
+    val text: String = "",
+    val createdBy: User = User(),
+    val createdAt: Long = 0L,
+    val likedBy: ArrayList<String> = ArrayList())
+				
+// create postDao after that
+
+class PostDao {
+
+    val db = FirebaseFirestore.getInstance()
+    val postCollections = db.collection("posts")
+    val auth = Firebase.auth
+
+	// adds post to DB 
+    fun addPost(text: String) {
+		// use to coroutine
+        GlobalScope.launch {
+			
+			// for creating post we need user
+			// Note: !! -> if it(user) is null the crash the app. [safety purposes]
+            val currentUserId = auth.currentUser!!.uid
+            val userDao = UserDao()
+			// getUserById return the task, we need to convert it to object 
+            val user = userDao.getUserById(currentUserId).await().toObject(User::class.java)!!
+			
+			// we need time 
+            val currentTime = System.currentTimeMillis()
+			
+			// finally created the post 
+            val post = Post(text, user, currentTime)
+			
+			// adding it to DB 
+            postCollections.document().set(post)
+        }
+    }
+
+    fun getPostById(postId: String): Task<DocumentSnapshot> {
+        return postCollections.document(postId).get()
+    }
+
+    fun updateLikes(postId: String) {
+        GlobalScope.launch {
+            val currentUserId = auth.currentUser!!.uid
+            val post = getPostById(postId).await().toObject(Post::class.java)!!
+            val isLiked = post.likedBy.contains(currentUserId)
+
+            if(isLiked) {
+                post.likedBy.remove(currentUserId)
+            } else {
+                post.likedBy.add(currentUserId)
+            }
+            postCollections.document(postId).set(post)
+        }
+
+    }
+}
+
+// create CreatePostActivity
+
+class CreatePostActivity : AppCompatActivity() {
+
+    private lateinit var postDao: PostDao
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_create_post)
+
+        postDao = PostDao()
+
+        postButton.setOnClickListener {
+            val input = postInput.text.toString().trim()
+            if(input.isNotEmpty()) {
+                postDao.addPost(input)
+				// after adding post to DB we need to go back to MainActivity
+                finish()
+            }
+        }
+    }
+}
+
+// Now for post we have to use FirestoreRecyclerViewApdater
+
+// first we will create XML of post using CardView
+
+// Now we gonna create PostAdapter class  FirestoreRecyclerViewApdater
+
+FirestoreRecyclerViewApdater - listens to data in real time, like when data is getting updated and displays in real time
+It only has two members -> onCreateViewHolder, onBindViewHolder
+
+class PostAdapter(options: FirestoreRecyclerOptions<Post>, val listener: IPostAdapter) : FirestoreRecyclerAdapter<Post, PostAdapter.PostViewHolder>(options) {
+
+    class PostViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
+        val postText: TextView = itemView.findViewById(R.id.postTitle)
+        val userText: TextView = itemView.findViewById(R.id.userName)
+        val createdAt: TextView = itemView.findViewById(R.id.createdAt)
+        val likeCount: TextView = itemView.findViewById(R.id.likeCount)
+        val userImage: ImageView = itemView.findViewById(R.id.userImage)
+        val likeButton: ImageView = itemView.findViewById(R.id.likeButton)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
+		// working ??
+        val viewHolder =  PostViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_post, parent, false))
+        viewHolder.likeButton.setOnClickListener{
+			// snapshots ???
+            listener.onLikeClicked(snapshots.getSnapshot(viewHolder.adapterPosition).id)
+        }
+        return viewHolder
+    }
+
+    override fun onBindViewHolder(holder: PostViewHolder, position: Int, model: Post) {
+        holder.postText.text = model.text
+        holder.userText.text = model.createdBy.displayName
+        Glide.with(holder.userImage.context).load(model.createdBy.imageUrl).circleCrop().into(holder.userImage)
+        holder.likeCount.text = model.likedBy.size.toString()
+        holder.createdAt.text = Utils.getTimeAgo(model.createdAt)
+
+        val auth = Firebase.auth
+        val currentUserId = auth.currentUser!!.uid
+        val isLiked = model.likedBy.contains(currentUserId)
+        if(isLiked) {
+            holder.likeButton.setImageDrawable(ContextCompat.getDrawable(holder.likeButton.context, R.drawable.ic_liked))
+        } else {
+            holder.likeButton.setImageDrawable(ContextCompat.getDrawable(holder.likeButton.context, R.drawable.ic_unliked))
+        }
+
+    }
+}
+
+interface IPostAdapter {
+    fun onLikeClicked(postId: String)
+}
+
+
+
+// MainActivity.kt
+
+class MainActivity : AppCompatActivity(), IPostAdapter {
+    private lateinit var postDao: PostDao
+    private lateinit var adapter: PostAdapter
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        fab.setOnClickListener{
+            val intent = Intent(this, CreatePostActivity::class.java)
+            startActivity(intent)
+        }
+
+        setUpRecyclerView()
+    }
+
+    private fun setUpRecyclerView() {
+        postDao = PostDao()
+        val postsCollections = postDao.postCollections
+        val query = postsCollections.orderBy("createdAt", Query.Direction.DESCENDING)
+        val recyclerViewOptions = FirestoreRecyclerOptions.Builder<Post>().setQuery(query, Post::class.java).build()
+
+        adapter = PostAdapter(recyclerViewOptions, this)
+
+        recyclerView.adapter = adapter
+        recyclerView.layoutManager = LinearLayoutManager(this)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        adapter.startListening()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        adapter.stopListening()
+    }
+
+    override fun onLikeClicked(postId: String) {
+        postDao.updateLikes(postId)
+    }
+}
+
+
+
+	
+	
+
+
+Recycler View Overview
+
+1. Setup RecyclerView in activity_main.xml
+2. In MainActivity define the layoutManager of RecyclerView
+3. Then create Adapter class
+4. Now create XML of repeating items 
+5. Create ViewHolder in Adapter class 
+	
+ViewHolder - The ViewHolder is a wrapper around a View that contains the layout for an individual item in the list.
+
+6. When you define your adapter, you need to override three key methods:
+
+onCreateViewHolder(): RecyclerView calls this method whenever it needs to create a new ViewHolder. With the help of interface it also helps in click handling.
+
+onBindViewHolder(): RecyclerView calls this method to associate a ViewHolder with data. The method fetches the appropriate data and uses the data to fill in the view holder's layout.
+
+getItemCount(): RecyclerView calls this method to get the size of the data set. 
+
+keywords: 
+1. notifyDataSetChange: helps in refreshing the three methods above.
+
+	
+	
+
+Tips:
+1. Don't explain the code
+2. Explain the concept, functions of the app
+
+
+Common Interview Questions
+
+1. Tell about the app (in general), what it is and what it does?
+2. Explain the functions of the app.
+3. Why makes the app Unique?
+4. What are challenges which I faced during the making?
+5. Why Android?
+6. Latest things used in the app.
+7. Improvements in the app.
+8. Motivation behind the app.
+9. Have you tested your app?
+10. User limit of the app.
+11. Why room DB?
+12. Why Firebase?
+
+IMPORTANT THINGS WHICH INTERVIEWER WILL SEE?
+1. Features
+2. Problems faced
+3. Why this tech stack
+4. Improvements
+
+
+STAR METHOD EXPLANATION
+
+Situation
+
+Right now we are in digital world, and the world is digital because any single person can connect with the whole world. So, I was curious about how people are actually getting connected. Like how database will store the user data, how the likes button are working, how the things which we take for granted are actually working. I wanted to know behind the scenes of connecting the whole world together. So that's the reason I created Socialize App.
+Socialize is a Social Media App where you can share your thoughts.
+
+Task
+
+1. Clean UI
+2. Maintain the security of the app.
+3. Update of likes/post in real time
+4. Google Authentication is MUST
+5. Lag free app.
+
+
+Action
+
+Designing the UI: 
+Firstly, I started by designing the clean UI and all the screens were little diffcult. But then I spent some time and did little sketch of the screen on my notebook, and finally I designed three screens of my app. 
+
+So, my app has three screens; sign in, post screen, create post screen.
+
+Then, I created my app in firebase. I created my account and linked my firebase with my Android Studio. 
+
+But the question is why I choose firebase?
+Real time database.
+Firebase takes care of all the internal operations.
+Multiple tools like google analatyics, cloud firestore, realtime databseetc
+Faster
+
+I used Cloud Firestore of Firebase as my database.
+So, Firestore is a NoSQL database that is part of the Firebase app development platform.
+
+Why Cloud Firestore?
+- Data is stored is structured way unlike Real Time DB of firestore.
+- Scaling will be automatic.
+- It is more secure, as security is my concern.
+- Cloud Firestore also features richer, faster queries and scales further than the Realtime Database.
+
+{Sign In Screen}
+I started by desgning the Sign In Screen.
+
+So, I desinged this Layout, and now with the help of firestore's documentation I was able to configure google authentication is my app.
+
+The google auth is designed in such a way that if user is not signed in, he will first sign in and then will move to post screen.
+
+But if user is already signed in then the user will directly go to post screen. The reason why user was directly go to post screen is because when user sign's in for the first time we will record the data of the user. And when the user again comes back and if the data is already present in the DB then I will move the user to Post screen directly.
+
+That's why storing the data of user is neccesary.
+
+Also for storing the user's info, i needed to create the user collection. So i created the user collection and stored it in my database.
+
+Properties of User:
+- uid
+- displayName               
+- imageUrl
+
+{Create Post Screen}
+Then once my google authetication was over is started to work on Create Post Screen.
+
+Before that in my post screen, I created one floating action button, and I handled the click on floating action button. So when user will click on floating action button, the user will be directed to Create Post Screen.
+
+Now firstly I designed the layout (in XML) of my Create Post Screen.
+
+Properties of Post:
+- User
+- Time
+- Text
+- LikedBy ArraysList
+
+Then I created post collection in my database, and send the post of the user in my database.
+
+So, when user will click on Post Button, the data will be send in the form of Post Object to Firestore. And the user will return to Post Screen.
+
+Now the diffculy was increasing because after desgning the layout, i was confused about my next step. Like how to update the data on Post Screen in realTime. 
+
+
+{Post Screen}
+
+First, I saw that we are going to have repeatative items of post. So i decided to implement recyclerView. I started doing so. But the I realised that i have to update likes/post in real time. And recyclerView will not listen to data in realTime.
+
+This was really challenging for me. I knew my database is realTime but still I don't know how to update the data in realTime. So i did my research on updating the data in recyclerView in real time. 
+
+And I found one intresting property of firestore, that is FirestoreRecyclerView.
+
+FirestoreRecyclerView is same as normal recyclerView but the only additional property it has is it listens to data in real time. 
+
+And that's how I solved the real time like/post update issue.
+
+I created the FirestoreRecyclerView Adapter, viewholder, layoutManager and XML of repeating items using card view. And created my FirestoreRecyclerView.
+
+So I accessed the Post from Firestore, I was showing the data in my FirestoreRecyclerView.
+
+{How I Handled the click}
+
+For handling the click, I used ArrayList of user. 
+
+So, when user will click on heart icon, and if user is not present in the ArrayList then it's a like, otherwise it's a dislike.
+
+Whenever user is liking, I am just changing the grey heart icon to red icon and vice versa.
+To get the like count I am just displaying the Size of the arraylist.
+
+Also when user is liking the post, I am adding the user in arraylist, and if user is disliking the post then i am just removing the user from arraylist.
+
+Everything is happening is realtime, as FirestoreRecyclerView listens to data in realtime. 
+
+So, if someone is liking the post it will update in realTime. Also if someone is creating the post, the app will get updated in realtime.
+
+{How I handled log out button}
+
+Here it was challenging for me to understand how I should design log out system. Like I was confused in the XML. First I started by creating my own Action bar, but later came to this realization that I can use menu widget with the help of some documentation. I designed the Logout button and then handled the click using googleSignInClient. There is one function in googleSignInClient which is sign out. I used that and when I am signing out, I am using intent with the help of which I will get redirected to SignIn Screen. And that's how i handled sign out button. 
+
+Note: Set onCompleteListner on googleSignInClient.signOut and then I used intent.
+
+{Avoid Lag}
+
+Firebase is really fast when it comes to speed. But the DB operations are time consuming, and whenever the app is performing the operations on DB then the user will experience some lag in the app. Because we are perfoming the Db operations on Main Thread. 
+
+To Avoid the lag, I have used coroutines. All my DB operations are handled With the help of coroutine. And though Firebase is fast but with the help of coroutine the app is even more lag free.
+
+{Security}
+
+Each and every time when i call the user, I am using !!. This means that if user is null at any point to time, I will crash my app. Suppose the user is creating the post, but at the same time user is null, so i will crash the app.
+
+
+Result
+
+- The app was secure, as I was using firebase and I was checking everytime whether the user is null or not.
+- User Friendly UI.
+- The likes/post is updated in realtime.
+- Also I am using google auth, for the security.
+- The app is lag free as all the heavy operations are done by coroutines.
+
+Improvements:
+- Comment Section.
+- Chat Box.
+- Mutiple authentication. 
+
+Why android? Why not flutter?
+
+- Smooth working
+- Fast operating speed.
+- Flawless performance.
+- Most reliable when it comes to user experience.

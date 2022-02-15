@@ -1,35 +1,37 @@
-static long rabinKarp(String s, String t) {
-	// check how many times s occurs in t
-
-	s = s.toLowerCase();
-	t = t.toLowerCase();
-
-	int S = s.length(), T = t.length();
-
-	long[] power = new long[T];
-	long p = 31;
-	power[0] = 1;
-	for(int i = 1; i < T; i++) {
-		power[i] = (power[i-1] * p) % mod;
-	}
-
-	long[] tHash = new long[T+1];
-	for(int i = 0; i < T; i++) {
-		tHash[i+1] = (tHash[i] + (t.charAt(i)-'a'+1) * power[i]) % mod; 
-	}
-
-	long sHash = 0;
-	for(int i = 0; i < S; i++) {
-		sHash = (sHash + (s.charAt(i)-'a'+1) *  power[i]) % mod; 
-	}
-
-	long count = 0l;
-	for(int i = 0; i < T; i++) {
-		if(i+S > T) break;
-		long curr = (tHash[i+S] - tHash[i] + mod) % mod;
-		if(curr == (sHash * power[i]) % mod) {
-			count++;
-		}
-	}
-	return count;
+class Solution {
+    public int rabinKarp(String s, String t) {
+	// check the occurence of first t substring in s.
+		
+        int n = s.length(), m = t.length();
+        if(n == 0 && m == 0) return 0;
+        
+        long prime = 31;
+        long mod = 1000000007;
+        
+        long tHash = 0;
+        long pr = 1;
+        for(int i = 0; i < m; i++){
+            tHash = (tHash + (t.charAt(i)-'a'+1) * pr) % mod;
+            pr = (pr * prime) % mod;
+        }
+        
+        int index = -1;
+        long sHash = 0;
+        pr = 1;
+        for(int i = n-1; i >= 0; i--){
+            sHash = ((sHash * prime)%mod + s.charAt(i)-'a' + 1)%mod;
+            
+            if(i+m >= n){
+                pr = (pr * prime)%mod;
+            }
+            else {
+                sHash = (sHash - ((s.charAt(i+m)-'a'+1)*pr)%mod + mod) % mod;
+            }
+            if(sHash == tHash){
+                index = i;
+            }
+        } 
+        
+        return index;
+    }
 }

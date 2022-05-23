@@ -66,7 +66,7 @@ int[] findTwoElement(int arr[], int n) {
 	
 	for(int i = 0; i < n; i++){
 		int num = i+1;
-		if((num&(1<<msb)) != 0){
+		if((num & (1<<msb)) != 0){
 			num1 ^= num;
 		}
 		else {
@@ -95,6 +95,7 @@ int[] findTwoElement(int arr[], int n) {
 
 3. Merge two sorted Arrays without extra space
 
+Logic: Always take the ceil(gap) where gap = n+m initially.
 Time: (N+M)log(N+M), Space: O(1)
 
 static int nextGap(int gap){
@@ -105,40 +106,47 @@ static int nextGap(int gap){
 public static void merge(long arr1[], long arr2[], int n, int m) 
 {
 	int gap = nextGap(n+m);
-	int i = 0;
-	int j = 0;
+	
 	while(gap > 0){
 		
-		// only on left array
-		for(i = 0; i + gap < n; i++){
-			if(arr1[i] > arr1[i+gap]){
-				long temp = arr1[i];
-				arr1[i] = arr1[i+gap];
-				arr1[i+gap] = temp;
+		int left = 0;
+		int right = gap;
+		
+		// check on left array ONLY
+		while(right < n){
+			if(arr1[left] > arr1[right]){
+				long temp = arr1[left];
+				arr1[left] = arr1[right];
+				arr1[right] = temp;
 			}
+			left++;
+			right++;
 		}
 		
-		// between left & right array
-		for(j = gap > n ? gap-n : 0; i < n && j < m; i++, j++){
-			if(arr1[i] > arr2[j]){
-				long temp = arr1[i];
-				arr1[i] = arr2[j];
-				arr2[j] = temp;
+		// check while left pointer is on left array [between arr1 and arr2 both]
+		right = Math.max(0,gap-n);
+		while(left < n && right < m){
+			if(arr1[left] > arr2[right]){
+				long temp = arr1[left];
+				arr1[left] = arr2[right];
+				arr2[right] = temp;
 			}
+			left++;
+			right++;
 		}
 		
-		// only on right array
-		if(j < m){
-			for(j = 0; j + gap < m; j++){
-				if(arr2[j] > arr2[j+gap]){
-					long temp = arr2[j];
-					arr2[j] = arr2[j+gap];
-					arr2[j+gap] = temp;
-				}
+		// check for arr2 ONLY
+		left = 0;
+		while(right < m){
+			if(arr2[left] > arr2[right]){
+				long temp = arr2[left];
+				arr2[left] = arr2[right];
+				arr2[right] = temp;
 			}
+			left++;
+			right++;
 		}
 		
-		// decrease the gap by the factor of 2
 		gap = nextGap(gap);
 	}
 }
@@ -163,62 +171,59 @@ public int maxSubArray(int[] nums) {
 	return max;
 }
 
-Follow Up: https://www.geeksforgeeks.org/maximum-sum-such-that-no-two-elements-are-adjacent/
-
 5. Merge Overlapping Subintervals
 
 Time: O(NLogN), Space: O(N)
 
-class Pair{
-	int x;
-	int y;
-	public Pair(int x, int y){
-		this.x = x;
-		this.y = y;
-	}
-}
-public int[][] merge(int[][] intervals) {
-	int n = intervals.length;
-	List<Pair> list = new ArrayList<>();
-	for(int[] e : intervals){
-		list.add(new Pair(e[0],e[1]));
-	}
-	
-	Collections.sort(list, (x,y) -> x.x-y.x == 0 ? x.y-y.y : x.x-y.x);
-	List<Pair> res = new ArrayList<>();
-	for(int i = 0; i < n; i++){
-		Pair p = list.get(i);
-		int j = i+1;
-		int start = p.x;
-		int end = p.y;
-		while(j < n){
-			Pair p1 = list.get(j);
-			int start1 = p1.x;
-			int end1 = p1.y;
-			if(start1 > end){
-				break;
-			}
-			else {
-				start = Math.min(start,start1);
-				end = Math.max(end,end1);
-			}
-			j++;
-		}
-		i = j-1;
-		res.add(new Pair(start,end));
-	}
-	int[][] resInt = new int[res.size()][2];
-	for(int i = 0; i < res.size(); i++){
-		Pair p = res.get(i);
-		resInt[i][0] = p.x;
-		resInt[i][1] = p.y;
-	}
-	return resInt;
+class Solution {
+    class Pair{
+        int start;
+        int end;
+        public Pair(int start, int end){
+            this.start = start;
+            this.end = end;
+        }
+    }
+    public int[][] merge(int[][] intervals) {
+        int n = intervals.length;
+        
+        List<Pair> list = new ArrayList<>();
+        for(int[] e : intervals){
+            list.add(new Pair(e[0],e[1]));
+        }
+        
+        Collections.sort(list, (x,y) -> x.start-y.start == 0 ? (x.end-y.end) : x.start-y.start);
+        
+        List<Pair> res = new ArrayList<>();
+        int s = 0;
+        int e = 0;
+        
+        int i = 0;
+        while(i < n){
+            s = list.get(i).start;
+            e = list.get(i).end;
+            while(i < n && e >= list.get(i).start){
+                e = Math.max(e,list.get(i).end);
+                i++;
+            }    
+            res.add(new Pair(s,e));
+        }
+        
+        int[][] arrRes = new int[res.size()][2];
+        i = 0;
+        for(Pair p : res){
+            arrRes[i][0] = p.start;
+            arrRes[i][1] = p.end;
+            i++;
+        }
+        
+        return arrRes;
+    }
 }
 
 6. Find the duplicate in an array of N+1 integers.
 
-Proof is IMP!
+Proof is IMP! Tortoise and hare problem!
 Time: O(N), Space: O(1)
 
 public int findDuplicate(int[] nums) {
@@ -242,6 +247,15 @@ public int findDuplicate(int[] nums) {
 	return slow;
 }
 
+Proof:
+Fast = 2 * Slow
+A + B + x*C = 2 * (A + B + y*C)
+A + B + x*C = 2A + 2B + 2yC
+xC - 2yC = A + B
+(x-2y) * C = A + B
+X * C = A + B 
+means that remaining part is A!
+
 7. Set Matrix Zeroes
 
 Time: O(N^2), Space: O(1)
@@ -249,6 +263,7 @@ Time: O(N^2), Space: O(1)
 public void setZeroes(int[][] arr) {
 	int row = arr.length;
 	int col = arr[0].length;
+	
 	boolean isColZero = false;
 	for(int i = 0; i < row; i++){
 		if(arr[i][0] == 0) isColZero = true;
@@ -470,7 +485,7 @@ public boolean searchMatrix(int[][] arr, int k) {
 Time: O(logN), Space: O(1) Apart from stack space
 
 public double myPow(double x, int n) {
-	if(n == Integer.MIN_VALUE){
+	if(n == Integer.MIN_VALUE){ // if we change n to long then we don't need to do this
 		n += 2;
 	}
 	if(n == 0){
@@ -483,11 +498,10 @@ public double myPow(double x, int n) {
 		double ans = myPow(x,-n);
 		return 1.0/ans;
 	}
+	double ans = myPow(x,n/2);
 	if(n%2 == 0){
-		double ans = myPow(x,n/2);
 		return ans*ans;
 	}
-	double ans = myPow(x,n/2);
 	return x * ans * ans;
 }
 
@@ -585,7 +599,7 @@ int helper(int m, int n, int[][] dp){
 
 Combinatorics Solution 
 
-(Just do (m+n-2 C m-1) OR (m+n-2 C n-1))
+(Just do (m+n-2 C Math.min(m-1,n-1))
 We can notice that for every solution we are taking n-1 steps to right & m-1 steps to left, 
 So in total we have m+n-2 choices and from that we have to choose m-1 OR n-1 steps.
 
@@ -740,30 +754,27 @@ public void preorder(TreeNode root, List<Integer> list){
 
 Iterative:
 
-USING 2 STACK
-Logic: Pop the curr & push the popped value in satck2 & Just go left and add & go right and add! 
-
-public void postorderTraversal(TreeNode root, List<Integer> list){
-	
-	if(root == null) return;
-	
-	Stack<TreeNode> s1 = new Stack<>();
-	Stack<TreeNode> s2 = new Stack<>();
-	s1.add(root);
-	while(!s1.isEmpty()){
-		TreeNode curr = s1.pop();
-		s2.add(curr);
-		if(curr.left != null){
-			s1.push(curr.left);
-		}
-		if(curr.right != null){
-			s1.push(curr.right);
-		}
-	}
-	
-	while(!s2.isEmpty()){
-		list.add(s2.pop().val);
-	}
+class Solution {
+    public List<Integer> postorderTraversal(TreeNode root) {
+        List<Integer> list = new ArrayList<>();
+        if(root == null) return list;
+        Stack<TreeNode> stack = new Stack<>();
+        stack.push(root);
+        
+        while(!stack.isEmpty()){
+            TreeNode curr = stack.pop();
+            list.add(curr.val);
+            if(curr.left != null){
+                stack.push(curr.left);
+            }
+            if(curr.right != null){
+                stack.push(curr.right);
+            }
+        }
+        
+        Collections.reverse(list);
+        return list;
+    }
 }
 
 USING 1 STACK
@@ -915,7 +926,7 @@ public ArrayList <Integer> bottomView(Node root)
 
 Same as Bottom View.. just few changes.
 
-7. Level order Traversal / Level order traversal in spiral form 
+7. Level order Traversal 
 
 Spiral/Zigzag (covers normal level order)
 public List<List<Integer>> zigzagLevelOrder(TreeNode root) {
@@ -937,15 +948,48 @@ public List<List<Integer>> zigzagLevelOrder(TreeNode root) {
 				q.add(curr.right);
 			}
 		}
-		if(rev){
-			Collections.reverse(level);
-		}
 		list.add(new ArrayList<>(level));
 		rev = !rev;
 	}
 	return list;
 }
 
+Follow Up: Level order traversal in spiral form without using reverse
+
+public List<List<Integer>> zigzagLevelOrder(TreeNode root) {
+	List<List<Integer>> list = new ArrayList<>();
+	if(root == null) return list;
+	
+	Deque<TreeNode> dq = new ArrayDeque<>();
+	dq.add(root);
+	
+	boolean reverse = false;
+	
+	while(!dq.isEmpty()){
+		int size = dq.size();
+		List<Integer> curr = new ArrayList<>();
+		
+		for(int i = 0; i < size; i++){
+			if(reverse){ // pop from last, right & left, add at first
+				TreeNode node = dq.pollLast();
+				curr.add(node.val);
+				if(node.right != null) dq.addFirst(node.right);
+				if(node.left != null) dq.addFirst(node.left);
+			}
+			else { // exactly opp
+				TreeNode node = dq.pollFirst();
+				curr.add(node.val);
+				if(node.left != null) dq.addLast(node.left);
+				if(node.right != null) dq.addLast(node.right);
+			}
+		}
+		
+		list.add(curr);
+		reverse = !reverse;
+	}
+	
+	return list;
+}
 
 8. Height of a Binary Tree 
 // Considered Vertices not Edges
@@ -1068,58 +1112,71 @@ int helper(TreeNode root){
 
 Time: O(N), Space: O(N)
 
-public TreeNode buildTree(int[] preorder, int[] inorder) {
-	int n = inorder.length;
-	return helper(preorder,inorder,0,n-1,0);
-}
-
-public TreeNode helper(int[] preorder, int[] inorder, int start, int end, int index){
-	if(start > end || index > preorder.length) return null;
-	
-	TreeNode root = new TreeNode(preorder[index]);
-	int currHead = preorder[index];
-	int rootIdx = -1;
-	for(int i = start; i <= end; i++){
-		if(inorder[i] == currHead){
-			rootIdx = i;
-			break;
-		}
-	}
-	
-	int leftSubTreeSize = rootIdx-start;
-	root.left = helper(preorder,inorder,start,rootIdx-1,index+1);
-	root.right = helper(preorder,inorder,rootIdx+1,end,index+1+leftSubTreeSize); // REMEMBER
-	
-	return root;
+class Solution {
+    public TreeNode buildTree(int[] preorder, int[] inorder) {
+        int n = preorder.length;
+        Map<Integer,Integer> map = new HashMap<>();
+        for(int i = 0; i < n; i++){
+            map.put(inorder[i],i);
+        }
+        return helper(preorder,inorder,0,n-1,0,map);
+    }
+    
+    private TreeNode helper(int[] preorder, int[] inorder, int start, int end, int rootIndex, Map<Integer,Integer> map){
+        if(start > end){
+            return null;
+        }
+        
+        TreeNode root = new TreeNode(preorder[rootIndex]);
+        
+        int index = map.get(root.val); // use map instead of below FOR loop
+        // for(int i = start; i <= end; i++){
+        //     if(inorder[i] == preorder[rootIndex]){
+        //         index = i;
+        //         break;
+        //     }
+        // }
+        
+        int leftSubTreeSize = index-start;
+        root.left = helper(preorder,inorder,start,index-1,rootIndex+1,map);
+        root.right = helper(preorder,inorder,index+1,end,rootIndex+leftSubTreeSize+1,map);
+        return root;
+    }
 }
 	
 15. Construct Binary Tree from Inorder and Postorder 
 
-Time: O(N), Space: O(N)
+Time: O(N), Space: O(H)
 
-public TreeNode buildTree(int[] inorder, int[] postorder) {
-	int n = inorder.length;
-	return helper(postorder,inorder,0,n-1,n-1);
-}
-
-public TreeNode helper(int[] postorder, int[] inorder, int start, int end, int index){
-	if(start > end || index < 0) return null;
-
-	TreeNode root = new TreeNode(postorder[index]);
-	int currHead = postorder[index];
-	int rootIdx = -1;
-	for(int i = start; i <= end; i++){
-		if(inorder[i] == currHead){
-			rootIdx = i;
-			break;
-		}
-	}
-
-	int rightSubTreeSize = end-rootIdx;
-	root.left = helper(postorder,inorder,start,rootIdx-1,index-1-rightSubTreeSize); // REMEMBER
-	root.right = helper(postorder,inorder,rootIdx+1,end,index-1);
-
-	return root;
+class Solution {
+    public TreeNode buildTree(int[] inorder, int[] postorder) {
+        int n = inorder.length;
+        Map<Integer,Integer> map = new HashMap<>();
+        for(int i = 0; i < n; i++){
+            map.put(inorder[i],i);
+        }
+        return helper(inorder,postorder,n,0,n-1,n-1,map);
+    }
+    
+    public TreeNode helper(int[] inorder, int[] postorder, int n, int start, int end, int rootIndex, Map<Integer,Integer> map){
+        if(start > end || rootIndex < 0) return null;
+        
+        TreeNode root = new TreeNode(postorder[rootIndex]);
+        
+        int index = map.get(root.val); // use map to find the index
+        // for(int i = start; i <= end; i++){
+        //     if(inorder[i] == root.val){
+        //         index = i;
+        //         break;
+        //     }
+        // }
+        
+        int rightSubTreeSize = end-index;
+        root.left = helper(inorder,postorder,n,start,index-1,rootIndex-1-rightSubTreeSize,map);
+        root.right = helper(inorder,postorder,n,index+1,end,rootIndex-1,map);
+        
+        return root;
+    }
 }
 	
 	
@@ -1191,9 +1248,97 @@ boolean isSymmetric(TreeNode r1, TreeNode r2){
 	return is1 && is2;
 }
 
+19. Max Width Of Binary Tree
+
+Logic: Pair of Node, index
+Time: O(N), Space: O(N)
+
+class Solution {
+    class Pair{
+        TreeNode node;
+        int index;
+        public Pair(TreeNode node, int index){
+            this.node = node;
+            this.index = index;
+        }
+    }
+    
+    public int widthOfBinaryTree(TreeNode root) {
+        if(root == null) return 0;
+        int max = 0;
+        Queue<Pair> q = new LinkedList<>();
+        q.add(new Pair(root,0));
+        
+        while(!q.isEmpty()){
+            int size = q.size();
+            int first = -1, last = -1;
+            for(int i = 0; i < size; i++){
+                Pair curr = q.poll();
+                if(first == -1){
+                    first = curr.index;
+                }
+                last = curr.index;
+                if(curr.node.left != null){
+                    q.add(new Pair(curr.node.left,2*curr.index+1));
+                }
+                if(curr.node.right != null){
+                    q.add(new Pair(curr.node.right,2*curr.index+2));
+                }
+            }
+            if(first != -1){
+                max = Math.max(max,last-first+1);
+            }
+        }
+        return max;
+    }
+}
+
+20. Child Sum Property
+
+Idea: Go top to bottom.
+
+Time: O(N), Space: O(N)
+
+public class Solution {
+    public static void changeTree(BinaryTreeNode<Integer> root) {
+        helper(root);
+    }
+    
+    private static int helper(BinaryTreeNode<Integer> root){
+        if(root == null) return 0;
+        
+        int sum = 0;
+        if(root.left != null){
+            sum += root.left.data;
+        }
+        if(root.right != null){
+            sum += root.right.data;
+        }
+        
+        if(sum <= root.data){
+            if(root.left != null){
+                root.left.data = root.data;
+            }
+            if(root.right != null){
+                root.right.data = root.data;
+            }
+        }
+        
+        helper(root.left);
+        helper(root.right);
+        
+        int res = 0;
+        if(root.left != null) res += root.left.data;
+        if(root.right != null) res += root.right.data;
+        if(root.left != null || root.right != null) root.data = res; // if not leaf then add res
+        
+        return root.data;
+    }
+}
+
 BINARY SEARCH TREE
 
-19. Populate Next Right pointers of Tree 
+1. Populate Next Right pointers of Tree 
 
 Logic: Iterative BFS
 
@@ -1228,8 +1373,56 @@ public Node connect(Node root) {
 	return root;
 }
 
+Follow Up: Populate next pointer 2 
 
-20. Search given Key in BST 
+Time: O(N), Space: o(1)
+Logic:
+Link the next level because the first level is already linked.
+And to find the first element of next level we need nextStart pointer.
+Use prev pointer to link the curr. 
+		1
+	    /\	
+	NS 2->3
+	   /   \
+	  4     5
+
+class Solution {
+    public Node connect(Node root) {
+        if(root == null) return root;
+        
+        Node prev = null;
+        Node curr = null;
+        Node nextStart = root;
+        
+        while(nextStart != null){
+            curr = nextStart;
+            prev = null;
+            nextStart = null;
+            
+            while(curr != null){
+                if(curr.left != null){
+                    if(nextStart == null) nextStart = curr.left;
+                    if(prev != null){
+                        prev.next = curr.left;
+                    }
+                    prev = curr.left;
+                }
+                if(curr.right != null){
+                    if(nextStart == null) nextStart = curr.right;
+                    if(prev != null){
+                        prev.next = curr.right;
+                    }
+                    prev = curr.right;
+                }
+                curr = curr.next;
+            }
+        }
+        
+        return root;
+    }
+}	  
+
+2. Search given Key in BST 
 
 Time: O(H), Space: O(H)
 
@@ -1243,7 +1436,7 @@ public TreeNode searchBST(TreeNode root, int val) {
 	return searchBST(root.right,val);
 }
 
-21. Construct BST from given keys. 
+3. Construct BST from given keys. 
 
 Time: O(H), Space: O(H)
 
@@ -1260,7 +1453,7 @@ public TreeNode helper(int[] nums, int start, int end){
 	return root;
 }
 
-22. Check if a BT is BST or not  
+4. Check if a BT is BST or not  
 
 Time: O(H), Space: O(H)
 
@@ -1277,7 +1470,7 @@ public boolean isValid(TreeNode root, TreeNode start, TreeNode end){
 	return isValid(root.left,start,root) && isValid(root.right,root,end);
 }
 	
-23. Find LCA of two nodes in BST 
+5. Find LCA of two nodes in BST 
 
 Time: O(H), Space: O(H)
 
@@ -1294,7 +1487,7 @@ public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
 	return root;
 }
 
-24. Find the inorder predecessor/successor of a given Key in BST. 
+6. Find the inorder predecessor/successor of a given Key in BST. 
 
 Predecessor is same as successor, just change left to right and stuff like that!
 
@@ -1343,12 +1536,12 @@ public Node find(Node root, int data){
 	return find(root.left,data);
 }
 
-25. Floor and Ceil in a BST 
+7. Floor and Ceil in a BST 
 
 Time: O(H), Space: O(H)
 Same as search in BST!
 
-26. Find K-th smallest and K-th largest element in BST (2 different Questions) 
+8. Find K-th smallest and K-th largest element in BST (2 different Questions) 
 
 Kth Smallest:
 
@@ -1397,7 +1590,7 @@ public int kthLargest(Node root,int K) {
 	}
 }
 
-27. Find a pair with a given sum in BST 
+9. Find a pair with a given sum in BST 
 
 Logic: 2 pointers with min stack and max stack.
 
@@ -1455,11 +1648,11 @@ public boolean findTarget(TreeNode root, int k) {
 	return false;
 }
 
-28. BST iterator 
+10. BST iterator 
 
 Logic: idea is to do partial inorder and go full to left then right and then left again like this.
 
-Time: O(1), Space: O(H)
+Time: O(1) Amortised, Space: O(H)
 
 class BSTIterator {
     
@@ -1487,7 +1680,7 @@ class BSTIterator {
     }
 }
 
-29. Size of the largest BST in a Binary Tree 
+11. Size of the largest BST in a Binary Tree 
 
 Logic: Postorder traversal with Info class
 
@@ -1533,57 +1726,41 @@ static Info helper(Node root){
 	return new Info(false,Math.max(left.size,right.size),0,0);
 }
 
-30. Serialize and deserialize Binary Tree [DEKH LENA]
+12. Serialize and deserialize Binary Tree
 
 Time: O(N), Space: O(N)
 
 // PREORDER TRAVERSAL
+public class Solution {
 
-public String serialize(TreeNode root) {
-	if(root == null) return "";
-	Queue<TreeNode> q = new LinkedList<>();
-	q.add(root);
-	StringBuilder res = new StringBuilder();
-	while(!q.isEmpty()){
-		TreeNode curr = q.poll();
-		if(curr == null){
-			res.append("n ");
-			continue;
-		}
-		
-		res.append(curr.val + " ");
-		q.add(curr.left);
-		q.add(curr.right);
-	}
-	return res.toString();
-}
+    // Encodes a tree to a single string.
+    public String serialize(TreeNode root) {
+        // preorder traversal
+        if(root == null) return "N";
+        return root.val + "," + serialize(root.left) + "," + serialize(root.right);
+    }
 
-public TreeNode deserialize(String data) {
-	if(data.length() == 0) return null;
-	
-	String[] arr = data.split(" ");
-	Queue<TreeNode> q = new LinkedList<>();
-	TreeNode root = new TreeNode(Integer.parseInt(arr[0]));
-	q.add(root);
-	
-	for(int i = 1; i < arr.length; i++){
-		TreeNode par = q.poll();
-		if(!arr[i].equals("n")){
-			TreeNode left = new TreeNode(Integer.parseInt(arr[i]));
-			par.left = left;
-			q.add(left);
-		}
-		if(!arr[++i].equals("n")){
-			TreeNode right = new TreeNode(Integer.parseInt(arr[i]));
-			par.right = right;
-			q.add(right);
-		}
-	}
-	return root;
+    // Decodes your encoded data to tree.
+    public TreeNode deserialize(String data) {
+        String[] arr = data.split(",");
+        int[] index = new int[1];
+        return helper(arr,index);
+    }
+    
+    private TreeNode helper(String[] arr, int[] index){
+        if(arr[index[0]].equals("N")) {
+            index[0]++;
+            return null;
+        }
+        TreeNode root = new TreeNode(Integer.parseInt(arr[index[0]++]));
+        root.left = helper(arr,index);
+        root.right = helper(arr,index);
+        return root;
+    }
 }
 
 
-31. Subtree of Another Tree [ALSO DO O(N) too]
+13. Subtree of Another Tree [ALSO DO O(N) using KMP and preorder traversal]
 
 public boolean isSubtree(TreeNode root, TreeNode subRoot) {
 	if(root == null) return false;
@@ -1599,7 +1776,7 @@ private boolean isSame(TreeNode s, TreeNode t) {
 }
 
 
-32. Binary Tree to Double Linked List 
+14. Binary Tree to Double Linked List 
 
 Logic: 
 // right - next
@@ -1627,9 +1804,7 @@ static Node bToDLL(Node root)
 	return head;
 }
 
-static void _bToDLL(Node root)
-{
-	
+static void _bToDLL(Node root){
 	if(root == null) return;
 	
 	_bToDLL(root.left);
@@ -1640,6 +1815,64 @@ static void _bToDLL(Node root)
 	
 	_bToDLL(root.right);
 	
+}
+
+15. Construct BST from preorder
+
+Time: O(N), Space: O(h)
+
+class Solution {
+    int i = 0;
+    public TreeNode bstFromPreorder(int[] preorder) {
+        return helper(preorder, Integer.MAX_VALUE);
+    }
+    
+    private TreeNode helper(int[] preorder, int bound){
+        if(i >= preorder.length || preorder[i] >= bound) return null;
+        TreeNode root = new TreeNode(preorder[i++]);
+        root.left = helper(preorder,root.val);
+        root.right = helper(preorder,bound);
+        return root;
+    }
+}
+
+16. Deletion in BST
+
+Time: O(N) [In Case of Scew Tree], Space: O(H)
+
+class Tree {
+    // Function to delete a node from BST.
+    public static Node deleteNode(Node root, int X) {
+        if(root == null) return root;
+        
+        if(root.data > X){
+            root.left = deleteNode(root.left,X);
+        }
+        else if(root.data < X){
+            root.right = deleteNode(root.right,X);
+        }
+        else{    
+            if(root.left == null && root.right == null){ // if no child is present
+                root = null;
+            }
+            else if(root.left != null && root.right != null){ // if there are two child
+                Node min = findMin(root.right);
+                root.data = min.data;
+                root.right = deleteNode(root.right,min.data);
+            }
+            else { // if one child is present
+                root = root.left == null ? root.right : root.left;
+            }   
+        }
+        return root;
+    }
+    
+    private static Node findMin(Node root){
+        while(root.left != null){
+            root = root.left;
+        }
+        return root;
+    }
 }
 	
 Mixed Questions:
@@ -1770,7 +2003,7 @@ public int findKthLargest(int[] nums, int k) {
 	return pq.peek();
 }
 
-QUICK SORT APPROACH
+QUICK SELECT APPROACH
 
 Logic: 
 1. Take pivot as end.
@@ -1865,7 +2098,26 @@ public ListNode reverseList(ListNode head) {
 		curr = next;
 	}
 	return prev;
-} 
+}
+
+// in recursion  
+
+class Solution {
+    public ListNode reverseList(ListNode head) {
+        return reverse(head);
+    }
+    
+    public ListNode reverse(ListNode head){
+        if(head == null || head.next == null){
+            return head;
+        }
+        ListNode newHead = reverse(head.next);
+        head.next.next = head;
+        head.next = null;
+        return newHead;
+    }
+    
+}
 
 2. Find middle of LinkedList 
 
@@ -2023,6 +2275,43 @@ public boolean hasCycle(ListNode head) {
 
 9. Reverse a LinkedList in groups of size k. (HARD)
 
+Time: O(N), Space: O(N)
+
+// Recursion
+class Solution {
+    public ListNode reverseKGroup(ListNode head, int k) {
+        if(head == null) return head;
+        
+        ListNode curr = head;
+        ListNode next = null;
+        ListNode prev = null;
+        
+        int count = 0;
+        while(curr != null && count < k){
+            curr = curr.next;
+            count++;
+        }
+        
+        if(count != k) return head;
+        
+        curr = head;
+        
+        while(curr != null && count != 0){
+            next = curr.next;
+            curr.next = prev;
+            prev = curr;
+            curr = next;
+            count--;
+        }
+        
+        next = reverseKGroup(curr,k);
+        head.next = next;
+        
+        return prev;
+    }
+}
+
+// Iterative
 Mainly need three pointers: prev, curr, next & dummy (as head).
 
 Dry Run on this to understand stuff.
@@ -2030,12 +2319,15 @@ Dry Run on this to understand stuff.
 D -> 1 -> 2 -> 3 -> NULL
 P    C    N
 
+curr.next = next.next;
 D -> 2 -> 1 -> 3 -> NULL
 P         C    N
 
+next.next = prev.next;
 D -> 3 -> 2 -> 1 -> NULL
 P              C     N
 
+prev.next = next
 D -> 3 -> 2 -> 1 -> NULL
                C     N
                P
@@ -2119,19 +2411,18 @@ public ListNode reverseList(ListNode head) {
 	return prev;
 } 
 
-11. Find the starting point of the Loop of LinkedList
+11. Find the starting point of the Loop of LinkedList 
 
-Tortoise & Hare OR Same as Duplicate Element in N+1 Array
+Tortoise & Hare OR Same as Duplicate Element in N+1 Array [Proof is IMP]
 Time: O(N), Space: O(1)
 
 public ListNode detectCycle(ListNode head) {
 	ListNode fast = head;
 	ListNode slow = head;
-	
 	while(fast != null && fast.next != null){
 		fast = fast.next.next;
 		slow = slow.next;
-		if(slow == fast){
+		if(slow == fast){ // cycle exists
 			slow = head;
 			while(fast != slow){
 				fast = fast.next;
@@ -2142,6 +2433,15 @@ public ListNode detectCycle(ListNode head) {
 	}
 	return null;
 }
+
+Proof:
+Fast = 2 * Slow
+A + B + x*C = 2 * (A + B + y*C)
+A + B + x*C = 2A + 2B + 2yC
+xC - 2yC = A + B
+(x-2y) * C = A + B
+X * C = A + B 
+means that remaining part is A!
 
 12. Flattening of a LinkedList 
 
@@ -2273,6 +2573,45 @@ public Node copyRandomList(Node head) {
 	}
 	
 	return copyHead;
+}
+
+15. Merge k sorted linked lists
+
+Time: O(NlogK), Space: O(logK) [recursion stack space]
+
+class Solution {
+    public ListNode mergeKLists(ListNode[] lists) {
+        int n = lists.length;
+        if(lists == null || n == 0) return null;
+        return helper(lists,0,n-1);
+    }
+    
+    public ListNode helper(ListNode[] lists, int start, int end){
+        if(start == end) return lists[start];
+        if(start > end) return null;
+        int mid = start + (end-start)/2;
+        ListNode left = helper(lists,start,mid);
+        ListNode right = helper(lists,mid+1,end);
+        return mergeTwoLists(left,right);
+    }
+    
+    public ListNode mergeTwoLists(ListNode left, ListNode right){
+        if(left == null) return right;
+        if(right == null) return left;
+        
+        if(left.val < right.val){
+            ListNode curr = left;
+            ListNode next = mergeTwoLists(left.next,right);
+            curr.next = next;
+            return curr;
+        }
+        else {
+            ListNode curr = right;
+            ListNode next = mergeTwoLists(left,right.next);
+            curr.next = next;
+            return curr;
+        }
+    }
 }
 
 
@@ -2424,25 +2763,28 @@ public int subarraySum(int[] nums, int k) {
 
 5. Count number of subarrays with given XOR(this clears a lot of problems) 
 
+Property Of XOR
+A ^ B = C
+then A = B ^ C
+
 Same as above
 Time: O(N), Space: O(N)
 
-public static int helper(int[] A, int B){
-	int n = A.length;
-	Map<Integer,Integer> map = new HashMap<>();
-	int count = 0;
-	int xor = 0;
-	for(int i = 0; i < n; i++){
-		xor ^= A[i];
-		if(map.containsKey(xor^B)){
-			count += map.get(xor^B);
-		}
-		if(xor == B){
-			count++;
-		}
-		map.put(xor,map.getOrDefault(xor,0)+1);
-	}
-	return count;
+public class Solution {
+    public int solve(ArrayList<Integer> A, int B) {
+        Map<Integer,Integer> map = new HashMap<>();
+        map.put(0,1);
+        int xor = 0;
+        int count = 0;
+        for(int e : A){
+            xor ^= e;
+            if(map.containsKey(xor ^ B)){
+                count += map.get(xor ^ B);
+            }
+            map.put(xor,map.getOrDefault(xor,0)+1);
+        }
+        return count;
+    }
 }
 
 6. Count Number of pairs divisible by K [IMP] 
@@ -2545,6 +2887,7 @@ public List<List<Integer>> threeSum(int[] nums) {
 
 2. Trapping rainwater  
 
+Better Solution:
 NGE, PGE
 Time: O(N), Space: O(N)
 
@@ -2568,6 +2911,44 @@ public int trap(int[] arr) {
 		int res = Math.min(left[i-1],right[i+1]) - arr[i];
 		count += res < 0 ? 0 : res;
 	}
+	return count;
+}
+
+Best Solution:
+Time: O(N), Space: O(1)
+
+public int trap(int[] height) {
+	
+	int n = height.length;
+	
+	int left = 0;
+	int right = n-1;
+	
+	int count = 0;
+	int leftMax = height[left];
+	int rightMax = height[right];
+	
+	while(left < right){
+		if(height[left] <= height[right]){
+			if(height[left] >= leftMax){
+				leftMax = height[left];
+			}
+			else {
+				count += leftMax-height[left];
+			}
+			left++;
+		}
+		else {
+			if(height[right] >= rightMax){
+				rightMax = height[right];
+			}
+			else {
+				count += rightMax-height[right];
+			}
+			right--;
+		}
+	}
+	
 	return count;
 }
 
@@ -2787,15 +3168,15 @@ WHOLE CODE IS ALSO SAME AS "N meeting in one room"
 
 Time: O(N), Space: O(1)
 
-int tour(int p[], int d[])
+int tour(int gas[], int cost[])
 {
-	int n = p.length;
+	int n = gas.length;
 	int tot = 0;
 	int curr = 0;
 	int ans = 0;      
 	for(int i = 0; i < n; i++){
-		tot += p[i]-d[i];
-		curr += p[i]-d[i];
+		tot += gas[i]-cost[i];
+		curr += gas[i]-cost[i];
 		if(curr < 0){     
 			curr = 0;
 			ans = i+1;
@@ -3003,42 +3384,44 @@ void helper(List<List<Integer>> res, List<Integer> list, int index, int[] arr, i
 
 Time: O(N * 2^N), Space: O(N * 2^N)
 
-public List<List<String>> partition(String s) {
-	int n = s.length();
-	List<List<String>> res = new ArrayList<>();
-	helper(res,0,s,n,new ArrayList<>());
-	return res;
-}
-
-void helper(List<List<String>> res, int start, String s, int n, List<String> list){
-	if(start == n){
-		if(list.size() != 0) {
-			res.add(new ArrayList<>(list));
-		}
-		return;
-	}
-	for(int i = start; i < n; i++){
-		if(isPalin(s.substring(start,i+1))){
-			list.add(s.substring(start,i+1));
-			helper(res,i+1,s,n,list);
-			list.remove(list.size()-1);
-		}
-	}
-}
-
-boolean isPalin(String s){
-	int n = s.length();
-	if(n == 0) return false;
-	int i = 0;
-	int j = n-1;
-	while(i <= j){
-		if(s.charAt(i) != s.charAt(j)){
-			return false;
-		}
-		i++;
-		j--;
-	}
-	return true;
+class Solution {
+    public List<List<String>> partition(String s) {
+        List<List<String>> res = new ArrayList<>();
+        int n = s.length();
+        boolean[][] isPalin = new boolean[n][n];
+        helper(s,0,n,res,new ArrayList<>(),isPalin);
+        return res;
+    }
+    
+    private void helper(String s, int start, int n, List<List<String>> res, List<String> curr, boolean[][] isPalin){
+        if(start == n){
+            if(curr.size() != 0) res.add(new ArrayList<>(curr));
+            return;
+        }
+        for(int i = start; i < n; i++){
+            if(isPalin[start][i] || isPalin(s.substring(start,i+1))){
+                isPalin[start][i] = true;
+                curr.add(s.substring(start,i+1));
+                helper(s,i+1,n,res,curr,isPalin);
+                curr.remove(curr.size()-1);
+            }
+        }   
+    }
+    
+    private boolean isPalin(String s){
+        int i = 0;
+        int j = s.length()-1;
+        while(i <= j){
+            if(s.charAt(i) == s.charAt(j)){
+                i++;
+                j--;
+            }
+            else {
+                return false;    
+            }
+        }
+        return true;
+    }
 }
 
 6. K-th permutation Sequence [RATED HARD BUT EASY]
@@ -3098,28 +3481,34 @@ DONE!
 
 Time: O(N^2), Space: O(N)
 
-public String getPermutation(int n, int k) { 
-	List<Integer> nums = new ArrayList<>();
-	int fact = 1;
-	for(int i = 1; i < n; i++){
-		fact *= i;
-		nums.add(i);
-	}
-	nums.add(n);
-	
-	k = k-1;
-	String ans = "";
-	
-	while(true){
-		ans += nums.get(k/fact);
-		nums.remove(k/fact);
-		if(nums.size() == 0){
-			break;
-		}
-		k = k%fact;
-		fact = fact/nums.size();
-	}
-	return ans;
+class Solution {
+    public String getPermutation(int n, int k) {
+        k--;   
+        List<Integer> list = new ArrayList<>();
+        int fact = 1;
+        for(int i = 1; i <= n; i++){
+            list.add(i);
+            fact *= i;
+        }
+        
+        fact /= n;
+        
+        StringBuilder sb = new StringBuilder();
+        while(list.size() != 0){
+            int blockSize = fact; // blockSize = n!/n = (n-1)!
+            int blockNumber = k/blockSize;
+            
+            sb.append(list.get(blockNumber));
+            list.remove(blockNumber);
+            
+            if(list.size() == 0) break; 
+            
+            k %= blockSize; 
+            fact /= list.size();
+        }
+        
+        return sb.toString();
+    }
 }
 
 
@@ -3644,7 +4033,7 @@ public double findMedianSortedArrays(int[] nums1, int[] nums2) {
 				return (double)(leftMax/2.0 + rightMin/2.0);
 			}
 			else {
-				return (double) Math.max(left1,left2);
+				return (double) leftMax;
 			}
 		}
 		else if(left1 > right2){
@@ -3942,6 +4331,51 @@ class MyQueue {
 
 Follow Up: Implement Queue using singly linked list
 
+class MyQueue {
+
+    class Node{
+        Node next;
+        int data;
+        public Node(int data){
+            this.data = data;
+        }
+    }
+    
+    Node head = new Node(-1);
+    Node front = head;
+    Node rear = head;
+    
+    public MyQueue() {
+        
+    }
+    
+    public void push(int x) {
+        Node newNode = new Node(x);
+        rear.next = newNode;
+        rear = rear.next;
+    }
+    
+    public int pop() {
+        if(front.next == null) return -1;
+        int res = front.next.data;
+        if(rear == front.next){
+            rear = head;
+        }
+        front.next = front.next.next;
+        return res;
+    }
+    
+    public int peek() {
+        if(front.next == null) return -1;
+        int res = front.next.data;
+        return res;
+    }
+    
+    public boolean empty() {
+        return front.next == null;    
+    }
+}
+
 5. Check for balanced parentheses 
 
 Time: O(N), Space: O(N)
@@ -4021,6 +4455,8 @@ public int[] nextGreaterElements(int[] nums) {
 }
 	
 7. Sort a Stack 
+
+Time: O(N^2), Space: O(N)
 
 Using RECURSION
 
@@ -4782,12 +5218,52 @@ static long rabinKarp(String s, String t) {
 	}
 	return count;
 }
+
+Optimized Version: Time: O(N+M), Space: O(1)
+
+class Solution {
+    public int strStr(String s, String t) {
+		// check the occurence of first s substring in t.
+		
+        int n = s.length(), m = t.length();
+        if(n == 0 && m == 0) return 0;
+        
+        long prime = 31;
+        long mod = 1000000007;
+        
+        long sHash = 0;
+        long pr = 1;
+        for(int i = 0; i < m; i++){
+            sHash = (sHash + (t.charAt(i)-'a'+1) * pr) % mod;
+            pr = (pr * prime) % mod;
+        }
+        
+        int index = -1;
+        long tHash = 0;
+        pr = 1;
+        for(int i = n-1; i >= 0; i--){
+            tHash = ((tHash * prime)%mod + s.charAt(i)-'a' + 1)%mod;
+            
+            if(i+m >= n){
+                pr = (pr * prime)%mod;
+            }
+            else {
+                tHash = (tHash - ((s.charAt(i+m)-'a'+1)*pr)%mod + mod) % mod;
+            }
+            if(tHash == sHash){
+                index = i;
+            }
+        } 
+        
+        return index;
+    }
+}
  
-7. Prefix Function/Z-Function
+7. Prefix Function
 
-Q. Longest Prefix which is Also Suffix
+Idea: Longest Prefix which is Also Suffix
 
-Time: O(N), Space: O(N)
+Time: O(N+M), Space: O(N)
 
 int[] prefixFunction(String s){
 	int n = s.length();
@@ -4804,7 +5280,7 @@ int[] prefixFunction(String s){
 		}
 		else {
 			if(i != 0){ 
-				i = prefix[i-1]; // REMEMBER
+				i = prefix[i-1]; 
 			}
 			else {
 				j++;
@@ -5126,7 +5602,7 @@ public ArrayList<Integer> bfsOfGraph(int V, ArrayList<ArrayList<Integer>> adj) {
 
 Logic: DFS with Parent!
 
-Time: O(V+E), Space: O(V+E)
+Time: O(V+E), Space: O(V)
 
 public boolean isCycle(int V, ArrayList<ArrayList<Integer>> adj) {
 	boolean[] vis = new boolean[V];
@@ -5264,26 +5740,45 @@ public void helper(char[][] grid, int i, int j, int rows, int cols){
 8. Bipartite Check 
 
 Logic: Pick the color of next node in current iteration only!
-Time: O(N*M), Space: O(N*M)
+Time: O(V), Space: O(V)
 
-boolean dfs(List<List<Integer>> list, int curr, boolean[] vis, int V, int newColor, int[] color){
-	if(color[curr] != 0){
-		return color[curr] == newColor;
-	}
-	vis[curr] = true;
-	color[curr] = newColor;
-	for(int e : list.get(curr)){
-		if(!dfs(list,e,vis,V,newColor == 1 ? 2 : 1, color)){
-			return false;
-		}
-	}
-	return true;
+class Solution
+{
+    public boolean isBipartite(int V, ArrayList<ArrayList<Integer>>adj)
+    {
+        int[] colors = new int[V];
+        Arrays.fill(colors,-1);
+        for(int i = 0; i < V; i++){
+            if(colors[i] == -1){
+                boolean res = helper(V,adj,i,0,colors);        
+                if(!res) return res;
+            }
+        }
+        return true;
+    }
+    
+    public boolean helper(int V, ArrayList<ArrayList<Integer>> adj, int curr, int color,int[] colors){
+        
+        if(colors[curr] != -1){
+            return colors[curr] == color; 
+        }
+        
+        colors[curr] = color;
+        ArrayList<Integer> neighbours = adj.get(curr);
+        for(int e : neighbours){
+            boolean op = helper(V,adj,e,color == 1 ? 0 : 1,colors);
+            if(!op){
+                return false;
+            }
+        }
+        return true;
+    }
 }
 
 9. SCC(using KosaRaju’s algo) 
 
 Logic:
-1. Do topo sort with DFS
+1. Do DFS similar to Topo Sort
 2. transpose the graph
 3. DFS on transpose with topo's stack
 
@@ -5467,7 +5962,7 @@ public void shortest_distance(int[][] dist)
 				else if(dist[i][j] == -1){ // no direct edge 
 					dist[i][j] = dist[i][k] + dist[k][j];
 				}
-				else if(dist[i][k] + dist[k][j] < dist[i][j]){
+				else if(dist[i][k] + dist[k][j] < dist[i][j]){ // if dist is present then try to relax nodes
 					dist[i][j] = dist[i][k] + dist[k][j];
 				}
 			}
@@ -5617,7 +6112,7 @@ void dfs(List<List<Integer>> list, List<List<Integer>> res, int[] time, int[] lo
 		else { // forward edge
 			dfs(list,res,time,low,n,e,curr,vis,timer);
 			low[curr] = Math.min(low[curr],low[e]);
-			if(low[e] > time[curr]){ // means the neighbour node doesn't have any connection with curr's ancestor
+			if(time[curr] < low[e]){ // means the neighbour node doesn't have any connection with curr's ancestor
 				List<Integer> l = new ArrayList<>();
 				l.add(curr);
 				l.add(e);
@@ -5626,6 +6121,7 @@ void dfs(List<List<Integer>> list, List<List<Integer>> res, int[] time, int[] lo
 		}
 	}
 }
+
 
 DYNAMIC PROGRAMMING
 
@@ -5961,7 +6457,7 @@ static int recursive(int[] arr, int N, int sum, int index){
 	return dp[index][sum];
 }
 
-11. Maximum profit in Job scheduling [DEKHNA PADEGA]
+11. Maximum profit in Job scheduling
 
 LIS + Binary Search
 Time: O(NlogN), Space: O(N)
@@ -6017,13 +6513,13 @@ public int helper(List<Pair> list, int n){
 	return dp[n-1];
 }
 
-12. Word Break
+12. Word Break [can be optimized using trie]
 
 Q. Given a string s and a dictionary of strings wordDict, return true if s can be segmented into a space-separated sequence of one or more dictionary words.
 Input: s = "leetcode", wordDict = ["leet","code"]
 Output: true
 
-Time: O(N^2), Space: O(N)
+Time: O(N^3), Space: O(N)
 
 public boolean wordBreak(String s, List<String> wordDict) {
 	if(s.equals("")) return false;
@@ -6077,7 +6573,8 @@ int helper(int egg, int floor){
 		int breaks = helper(egg-1,mid-1); // if breaks
 		int notbreaks = helper(egg,floor-mid); // not breaks
 		res = Math.min(res,Math.max(breaks,notbreaks)+1); // count result
-		if(breaks < notbreaks){
+		
+		if(breaks < notbreaks){ //if down/break attempts are less we only require upper ones and vise versa
 			start = mid+1;
 		}
 		else {
@@ -6087,7 +6584,7 @@ int helper(int egg, int floor){
 	return dp[egg][floor] = res;
 }
 
-14. Rod Cutting [DEKHNA PADEGA]
+14. Rod Cutting
 
 Time: O(N^2), Space: O(N)
 
@@ -6182,7 +6679,46 @@ public int minCut(String s) {
 	return cuts[n-1];
 }
 
+16. Travelling SalesMan Problem
 
+Time: O(N^2 * 2 ^N), Space: O(N * 2^N)
+
+class Solution
+{
+    public int total_cost(int[][] cost){
+        int n = cost.length;
+        int needed = (1<<n)-1;
+        int[][] dp = new int[needed+1][n];
+        for(int[] e : dp) Arrays.fill(e,-1);
+        return helper(1,0,n,needed,cost,dp);
+    }
+    
+    public int helper(int mask, int curr, int n, int needed, int[][] cost, int[][] dp){
+        
+        if(mask == needed){
+            return dp[mask][curr] = cost[curr][0];
+        }
+        
+        if(dp[mask][curr] != -1){
+            return dp[mask][curr];
+        }
+        
+        int min = Integer.MAX_VALUE;
+        for(int i = 0; i < n; i++){
+            if((mask&(1<<i)) == 0){ 
+                if(cost[curr][i] == 0) continue;
+                int currAns = helper(mask|(1<<i),i,n,needed,cost,dp);
+                if(currAns == Integer.MAX_VALUE) continue;
+                currAns += cost[curr][i];
+                min = Math.min(currAns,min);
+            }
+        }
+        
+        if(min != Integer.MAX_VALUE) dp[mask][curr] = min;
+        
+        return min;
+    }
+}
 
 BIT MANIPULATION
 
@@ -6286,8 +6822,4 @@ Space: O(M)
 To tackle the huge size problem, in java we create self balancing binary search tree. And because of this time becomes O(1 + log(size)).
 
 Load Factor: Whenever the size of object gets equals to load factor then we double the size of the HashMap's Nodes array. In java load factor is 0.75.
-
-
--> HEAP Implementation:
-
 
